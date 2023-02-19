@@ -70,7 +70,14 @@ contract PropertyFactory is PropertyFactoryInterface {
         return address(property);
     }
 
-    // only the controller can call this function
+    /**
+     * @dev function to finalize a property sale.
+     *      funds are transferred inside property.transferPropertyOwnerShip();
+     *
+     * @notice only the controller can call this function
+     *
+     * @param propertyAddress The property propertyAddress to finalize
+     */
     function propertyIsSold(address propertyAddress) public onlyFactoryController nonReentrant {
         // check if propertyAddress is in propertyAddresses array
         require(propertyAddresses[propertyAddress] != address(0), "Property does not exist");
@@ -93,6 +100,10 @@ contract PropertyFactory is PropertyFactoryInterface {
         emit PropertySold(address(property), property.highestBidder, _propertyInfo.seller, property.highestBid, _propertyInfo.id);
     }
 
+    /**
+     * @dev function to send received ETH to controller of this contract
+     *      todo: implement vault to receive ETH
+     */
     function withdraw() public onlyFactoryController nonReentrant {
         address payable _owner = payable(msg.sender);
         (bool success, ) = _owner.call{value: address(this).balance}("");

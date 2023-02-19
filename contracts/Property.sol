@@ -17,6 +17,8 @@ contract Property {
     address public highestBidder;
     uint public created;
 
+    event PropertyOwnerShipTransferred(address indexed seller, address indexed buyer);
+
     constructor(address factory, address _propertyOwner, PropertyInfo memory property) {
         _factory = factory;
         propertyOwner = _propertyOwner;
@@ -96,15 +98,24 @@ contract Property {
         propertyInfo.status = Status.Rejected;
     }
 
-    function transferPropertyOwnerShip() external onlyFactory nonReentrant {
+    function transferPropertyOwnerShip() external onlyFactory nonReentrant returns (bool success) {
         require(propertyInfo.status == Status.Sold, "Property is not sold");
 
         uint256 contractBalance = address(this).balance;
         require(contractBalance > 0, "Contract has no balance");
 
         propertyOwner = highestBidder;
+
+        success = _transferPropertyFunds();
+        require(success, "Transfer property funds failed.");
+
         propertyInfo.status = Status.Processed;
 
+        emit PropertyOwnerShipTransferred(propertyInfo.seller, propertyOwner);
+        return success;
+    }
+
+    function _transferPropertyFunds() internal returns (bool) {
         // take 2% fee from contract balance
         uint256 fee = contractBalance * platformFee / 100;
         (bool success, ) = _factory.call{value: fee}("");
@@ -121,8 +132,6 @@ contract Property {
 
         (bool success, ) = seller.call{value: amountAfterFee}("");
         require(success, "Transfer failed.");
-
-        // emit
         return true;
     }
 }

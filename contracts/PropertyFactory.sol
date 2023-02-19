@@ -7,16 +7,24 @@ import "./structs/PropertyStructs.sol";
 contract PropertyFactory is PropertyFactoryInterface {
     address public factoryController;
 
-    mapping(address => address) public properties;
-    address[] public propertyAddresses;
-    mapping(uint => PropertyInfo) public propertyInfo;
+    address[] public propertyAddresses; // list of all property addresses created
+    mapping(address => address[]) public properties; // mapping of owner to list of properties created
+    mapping(uint => PropertyInfo) public propertyInfo; // mapping of property id to property info
 
-    uint public propertyCount;
+    mapping(address => Property) public propertyContracts; // mapping of property address to property contract
+
+    uint public propertyCount; // total number of properties created
+
+    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId);
+    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint indexed propertyId);
 
     constructor(address factoryController) {
         factoryController = factoryController;
     }
 
+    /**
+     * @dev fallback function to receive ether
+     */
     receive() external payable {}
 
     modifier onlyFactoryController() {
@@ -24,11 +32,16 @@ contract PropertyFactory is PropertyFactoryInterface {
         _;
     }
 
+    /**
+     * @dev function to create a new property contract
+     *      owner of the property/contract is the msg.sender
+     *
+     * @param _property The property to create
+     * @return The name of this contract.
+     */
     function createProperty(CreateProperty _property) public nonReentrant returns (address) {
-        // Check if the property already exists
-        // require(properties[msg.sender] == address(0), "Property already exists");
         ++propertyCount;
-        /// @notice this really necessary?
+        // todo this really needed, properties are contracts
         PropertyInfo memory _propertyInfo = PropertyInfo({
             id: propertyCount,
             addr: _property.addr,
@@ -39,12 +52,21 @@ contract PropertyFactory is PropertyFactoryInterface {
             extraData: _property.extraData,
             status: Status.Created
         });
+
+        // add property to propertyInfo mapping
         propertyInfo[propertyCount] = _propertyInfo;
 
+        // create new property contract
         Property memory property = new Property(address(this), msg.sender, _propertyInfo);
-        properties[msg.sender] = address(property);
-        propertyAddresses.push(address(property));
 
+        // add property to properties mapping
+        properties[msg.sender].push(address(property));
+        // add property to propertyAddresses array
+        propertyAddresses.push(address(property));
+        // add property to propertyContracts mapping
+        propertyContracts[address(property)] = property;
+
+        emit PropertyCreated(address(property), msg.sender, propertyCount);
         return address(property);
     }
 
@@ -52,17 +74,23 @@ contract PropertyFactory is PropertyFactoryInterface {
     function propertyIsSold(address propertyAddress) public onlyFactoryController nonReentrant {
         // check if propertyAddress is in propertyAddresses array
         require(propertyAddresses[propertyAddress] != address(0), "Property does not exist");
+        require(propertyContracts[propertyAddress].created <= block.timestamp, "Property does not exist");
 
-        Property memory property = Property(property);
+        Property memory property = Property(propertyAddress);
 
         require(property.status == Status.Sold, "Property is not Sold");
         require(property.sellStatus.sellerAccepted == true, "Seller has not accepted the offer");
         require(property.sellStatus.buyerAccepted == true, "Buyer has not accepted the offer");
 
+        // update property to propertyContracts mapping
+        propertyContracts[address(propertyAddress)] = property;
+        PropertyInfo memory _propertyInfo = property.propertyInfo();
+        propertyInfo[_propertyInfo.id] = _propertyInfo;
+
         bool success = property.transferPropertyOwnerShip();
         require(success, "Property ownership transfer failed");
 
-        // emit
+        emit PropertySold(address(property), property.highestBidder, _propertyInfo.seller, property.highestBid, _propertyInfo.id);
     }
 
     function withdraw() public onlyFactoryController nonReentrant {

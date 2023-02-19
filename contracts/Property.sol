@@ -121,5 +121,8 @@ contract Property {
 
         (bool success, ) = seller.call{value: amountAfterFee}("");
         require(success, "Transfer failed.");
+
+        // emit
+        return true;
     }
 }

@@ -4,18 +4,20 @@ pragma solidity 0.8.17;
 import "./interfaces/IPropertyFactory.sol";
 import "./structs/PropertyStructs.sol";
 
+// todo implement nonreentrant
+
 contract Property {
     PropertyFactoryInterface public _factory;
     PropertyInfo public propertyInfo;
 
     // kosten koper currently paid by seller
-    uint public constant platformFee = 2;
-    uint public constant mortgageFee = 3;
+    uint public constant platformFee = 1; // scaling scale?
+    uint public constant mortgageFee = 1; // scaling scale?
 
     address public propertyOwner;
-    uint public highestBid;
+    uint256 public highestBid;
     address public highestBidder;
-    uint public created;
+    uint256 public created;
 
     event PropertyOwnerShipTransferred(address indexed seller, address indexed buyer);
 
@@ -58,7 +60,7 @@ contract Property {
     function bid() public payable nonReentrant {
         require(propertyInfo.status == Status.Created, "Property is not open for bidding");
         require(highestBidder != msg.sender, "Already the highest bidder");
-        require(msg.value > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
+        require(msg.value > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
         require(msg.value > highestBid, "Bid amount must be greater than highest bid");
         require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
 
@@ -155,23 +157,25 @@ contract Property {
     /**
      * @dev internal function to transfer funds to seller
      *
-     * @notice mortgage fee is paid to mortgage contract and is 3%
+     * @notice mortgage fee is paid to mortgage contract and is %
      * @notice platform fee is paid to factory contract and is 2%
      *
      * @return true if all transfers are successful
      */
     function _transferPropertyFunds() internal returns (bool) {
-        // take 2% fee from contract balance
+        // take 1% fee from contract balance
         uint256 fee = contractBalance * platformFee / 100;
-        (bool success, ) = _factory.call{value: fee}("");
-        require(success, "Transfer fee to factory failed.");
+//        (bool success, ) = _factory.call{value: fee}("");
+//        require(success, "Transfer fee to factory failed.");
 
         // todo transfer mortgageFee to mortgage contract
         uint256 mFee = contractBalance * mortgageFee / 100;
-        (bool success, ) = _factory.call{value: fee}("");
+        uint256 totalFee = fee + mFee;
+        // total fee transferred
+        (bool success, ) = _factory.call{value: totalFee}("");
         require(success, "Transfer fee to factory failed.");
 
-        uint amountAfterFee = contractBalance - fee - mFee;
+        uint amountAfterFee = contractBalance - totalFee;
 
         address payable seller = propertyInfo.seller;
 

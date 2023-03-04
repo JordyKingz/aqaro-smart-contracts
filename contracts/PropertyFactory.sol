@@ -4,6 +4,8 @@ pragma solidity 0.8.17;
 import "./Property.sol";
 import "./structs/PropertyStructs.sol";
 
+// todo implement nonreentrant
+
 contract PropertyFactory is PropertyFactoryInterface {
     address public factoryController;
 
@@ -23,8 +25,9 @@ contract PropertyFactory is PropertyFactoryInterface {
     }
 
     /**
-     * @dev fallback function to receive ether
+     * @dev fallback and receive function to receive ether
      */
+    fallback() external payable {}
     receive() external payable {}
 
     modifier onlyFactoryController() {
@@ -37,7 +40,7 @@ contract PropertyFactory is PropertyFactoryInterface {
      *      owner of the property/contract is the msg.sender
      *
      * @param _property The property to create
-     * @return The name of this contract.
+     * @return The address of the created contract.
      */
     function createProperty(CreateProperty _property) public nonReentrant returns (address) {
         ++propertyCount;

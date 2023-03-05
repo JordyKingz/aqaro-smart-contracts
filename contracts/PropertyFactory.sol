@@ -3,10 +3,9 @@ pragma solidity 0.8.17;
 
 import "./Property.sol";
 import "./structs/PropertyStructs.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-// todo implement nonreentrant
-
-contract PropertyFactory is PropertyFactoryInterface {
+contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     address public factoryController;
 
     address[] public propertyAddresses; // list of all property addresses created

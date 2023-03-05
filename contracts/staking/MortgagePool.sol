@@ -1,14 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-// todo implement nonreentrant
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./providers/MortgageProvider.sol";
 
-contract MortgagePool {
+contract MortgagePool is ReentrancyGuard {
     uint256 public totalBalance;
     mapping(address => uint256) public mortgageLiquidity;
     mapping(address => uint256) public mortgageLiquidityPercentage;
 
-    constructor() {}
+    constructor() MortgageProvider(address(this)) {}
+
+    modifier onlyMortgageProvider() {
+        require(msg.sender == address(this), "Only mortgage provider can call this function");
+        _;
+    }
 
     // fallback and receive
     fallback() external payable {

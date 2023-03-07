@@ -6,7 +6,7 @@ import "./structs/PropertyStructs.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract Property is ReentrancyGuard {
-    PropertyFactoryInterface public _factory;
+    PropertyFactoryInterface public factory;
     PropertyInfo public propertyInfo;
 
     // kosten koper currently paid by seller
@@ -20,8 +20,8 @@ contract Property is ReentrancyGuard {
 
     event PropertyOwnerShipTransferred(address indexed seller, address indexed buyer);
 
-    constructor(address factory, address _propertyOwner, PropertyInfo memory property) {
-        _factory = factory;
+    constructor(address _factory, address _propertyOwner, PropertyInfo memory property) {
+        factory = _factory;
         propertyOwner = _propertyOwner;
         info = property;
 
@@ -29,7 +29,7 @@ contract Property is ReentrancyGuard {
     }
 
     modifier onlyFactory() {
-        require(msg.sender == address(_factory), "Only factory can call this function");
+        require(msg.sender == address(factory), "Only factory can call this function");
         _;
     }
 
@@ -56,14 +56,14 @@ contract Property is ReentrancyGuard {
     /**
      * @dev function to bid on the property
      */
-    function bid() public payable nonReentrant {
+    function bid(uint256 offer) public nonReentrant {
         require(propertyInfo.status == Status.Created, "Property is not open for bidding");
         require(highestBidder != msg.sender, "Already the highest bidder");
-        require(msg.value > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
-        require(msg.value > highestBid, "Bid amount must be greater than highest bid");
+        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
+        require(offer > highestBid, "Bid amount must be greater than highest bid");
         require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
 
-        highestBid = msg.value;
+        highestBid = offer;
         highestBidder = msg.sender;
         propertyInfo.Status = Status.OfferReceived;
     }
@@ -71,14 +71,14 @@ contract Property is ReentrancyGuard {
     /**
      * @dev function to bid again when bid is rejected
      */
-    function bigAgain() public payable nonReentrant {
+    function bigAgain(uint256 offer) public nonReentrant {
         require(propertyInfo.status == Status.Rejected, "secondBid not allowed when offer is not rejected");
         require(highestBidder != msg.sender, "Already the highest bidder");
-        require(msg.value > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
-        require(msg.value > highestBid, "Bid amount must be greater than highest bid");
+        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
+        require(offer > highestBid, "Bid amount must be greater than highest bid");
         require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
 
-        highestBid = msg.value;
+        highestBid = offer;
         highestBidder = msg.sender;
         propertyInfo.Status = Status.OfferReceived;
     }
@@ -100,9 +100,19 @@ contract Property is ReentrancyGuard {
      *
      * @notice only the highest bidder can call this function
      */
-    function acceptAsBuyer() public onlyHighestBidder nonReentrant {
+    function acceptAsBuyer() public payable onlyHighestBidder nonReentrant {
         require(propertyInfo.status == Status.Accepted, "Bid not accepted");
         require(msg.sender == highestBidder, "Only highest bidder can accept the sell");
+        require(msg.value == highestBid, "Incorrect amount sent"); // now funds are transferred to the contract
+        propertyInfo.sellStatus.buyerAccepted = true;
+    }
+
+    // todo implement
+    function acceptAsBuyerWithMortgage(uint256 mortgageAmount) public payable onlyHighestBidder nonReentrant {
+        require(propertyInfo.status == Status.Accepted, "Bid not accepted");
+        require(msg.sender == highestBidder, "Only highest bidder can accept the sell");
+        require(msg.value == highestBid, "Incorrect amount sent"); // now funds are transferred to the contract
+        // todo implement way that msg.value is given from mortgage pool
         propertyInfo.sellStatus.buyerAccepted = true;
     }
 
@@ -146,7 +156,7 @@ contract Property is ReentrancyGuard {
         propertyOwner = highestBidder;
         propertyInfo.status = Status.Processed;
 
-        success = _transferPropertyFunds();
+        success = _transferPropertyFunds(contractBalance);
         require(success, "Transfer property funds failed.");
 
         emit PropertyOwnerShipTransferred(propertyInfo.seller, propertyOwner);
@@ -161,7 +171,7 @@ contract Property is ReentrancyGuard {
      *
      * @return true if all transfers are successful
      */
-    function _transferPropertyFunds() internal returns (bool) {
+    function _transferPropertyFunds(uint256 contractBalance) internal returns (bool) {
         // take 1% fee from contract balance
         uint256 fee = contractBalance * platformFee / 100;
 //        (bool success, ) = _factory.call{value: fee}("");

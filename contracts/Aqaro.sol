@@ -2,14 +2,15 @@
 pragma solidity 0.8.17;
 
 import "./PropertyFactory.sol";
+import "./staking/MortgagePool.sol";
 
-contract Aqaro is PropertyFactory {
+contract Aqaro is PropertyFactory, MortgagePool {
     /**
      * @dev Constructor function.
      *
      * @param factoryController The address that controls the factory
      */
-    constructor(address factoryController) PropertyFactory(factoryController) {}
+    constructor(address factoryController) PropertyFactory(factoryController) MortgagePool(factoryController) {}
 
     /**
      * @dev Internal pure function to retrieve and return the name of this

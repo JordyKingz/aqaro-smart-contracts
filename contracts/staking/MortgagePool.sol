@@ -5,11 +5,20 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./providers/MortgageProvider.sol";
 
 contract MortgagePool is ReentrancyGuard {
+    address public factoryController;
+
     uint256 public totalBalance;
     mapping(address => uint256) public mortgageLiquidity;
     mapping(address => uint256) public mortgageLiquidityPercentage;
 
-    constructor() MortgageProvider(address(this)) {}
+    constructor(address _factoryController) MortgageProvider(address(this), _factoryController) {
+        factoryController = _factoryController;
+    }
+
+    modifier onlyFactoryController() {
+        require(msg.sender == factoryController, "Only controller can call this function");
+        _;
+    }
 
     modifier onlyMortgageProvider() {
         require(msg.sender == address(this), "Only mortgage provider can call this function");

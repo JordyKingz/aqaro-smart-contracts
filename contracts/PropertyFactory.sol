@@ -19,8 +19,8 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId);
     event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint indexed propertyId);
 
-    constructor(address factoryController) {
-        factoryController = factoryController;
+    constructor(address _factoryController) {
+        factoryController = _factoryController;
     }
 
     /**
@@ -43,7 +43,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      */
     function createProperty(CreateProperty _property) public nonReentrant returns (address) {
         ++propertyCount;
-        // todo this really needed, properties are contracts
+
         PropertyInfo memory _propertyInfo = PropertyInfo({
             id: propertyCount,
             addr: _property.addr,

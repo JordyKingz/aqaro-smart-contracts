@@ -71,7 +71,7 @@ contract Property is ReentrancyGuard {
     /**
      * @dev function to bid again when bid is rejected
      */
-    function bigAgain(uint256 offer) public nonReentrant {
+    function bidAgain(uint256 offer) public nonReentrant {
         require(propertyInfo.status == Status.Rejected, "secondBid not allowed when offer is not rejected");
         require(highestBidder != msg.sender, "Already the highest bidder");
         require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");

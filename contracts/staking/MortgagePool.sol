@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./providers/MortgageProvider.sol";
+import "../providers/MortgageProvider.sol";
 
 contract MortgagePool is ReentrancyGuard {
     address public factoryController;

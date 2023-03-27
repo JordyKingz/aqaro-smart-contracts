@@ -29,7 +29,7 @@ contract MortgageProvider is ReentrancyGuard {
     function requestMortgage(uint256 _amount, address _property) public nonReentrant {
         require(_amount > 0, "Must request a positive amount");
         require(_property != address(0), "Must request a valid property address");
-        Property memory property = Property(propertyAddress);
+        Property property = Property(_property);
         require(property.highestBid() > 0, "Must have a bid on property");
         require(property.highestBidder() != address(0), "Must have a valid bidder");
         require(_amount == property.highestBid(), "Must request the same amount as the highest bid");

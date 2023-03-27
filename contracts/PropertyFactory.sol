@@ -41,7 +41,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      * @param _property The property to create
      * @return The address of the created contract.
      */
-    function createProperty(CreateProperty _property) public nonReentrant returns (address) {
+    function createProperty(CreateProperty memory _property) public nonReentrant returns (address) {
         ++propertyCount;
 
         PropertyInfo memory _propertyInfo = PropertyInfo({
@@ -49,17 +49,18 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
             addr: _property.addr,
             askingPrice: _property.askingPrice,
             seller: msg.sender,
-            signature: _property.signature,
-            created: block.timestamp,
-            extraData: _property.extraData,
-            status: Status.Created
+            status: Status.Created,
+            created: block.timestamp
+//            propertyGuid: _property.propertyGuid,
+//            signature: _property.signature,
+//            extraData: _property.extraData,
         });
 
         // add property to propertyInfo mapping
         propertyInfo[propertyCount] = _propertyInfo;
 
         // create new property contract
-        Property memory property = new Property(address(this), msg.sender, _propertyInfo);
+        Property property = new Property(address(this), msg.sender, _propertyInfo);
 
         // add property to properties mapping
         properties[msg.sender].push(address(property));
@@ -85,7 +86,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         require(propertyAddresses[propertyAddress] != address(0), "Property does not exist");
         require(propertyContracts[propertyAddress].created <= block.timestamp, "Property does not exist");
 
-        Property memory property = Property(propertyAddress);
+        Property property = Property(propertyAddress);
 
         require(property.status == Status.Sold, "Property is not Sold");
         require(property.sellStatus.sellerAccepted == true, "Seller has not accepted the offer");

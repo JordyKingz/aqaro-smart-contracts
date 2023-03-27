@@ -3,18 +3,20 @@ pragma solidity 0.8.17;
 struct CreateProperty {
     Address addr;
     uint askingPrice;
-    bytes signature;
-    bytes extraData;
+//    string propertyGuid; // id from backend?
+//    bytes signature; // ?
+//    bytes extraData; // ?
 }
 
 struct PropertyInfo {
     uint id;
+//    string propertyGuid;
     Address addr;
     uint askingPrice;
     address payable seller;
-    bytes signature;
+//    bytes signature; // ?
     uint created;
-    bytes extraData;
+//    bytes extraData; // ?
     Status status;
     SellStatus sellStatus;
 }

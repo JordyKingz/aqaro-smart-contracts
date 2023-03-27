@@ -21,10 +21,9 @@ contract Property is ReentrancyGuard {
     event PropertyOwnerShipTransferred(address indexed seller, address indexed buyer);
 
     constructor(address _factory, address _propertyOwner, PropertyInfo memory property) {
-        factory = _factory;
+        factory = PropertyFactoryInterface(_factory);
+        propertyInfo = property;
         propertyOwner = _propertyOwner;
-        info = property;
-
         created = block.timestamp;
     }
 
@@ -59,13 +58,13 @@ contract Property is ReentrancyGuard {
     function bid(uint256 offer) public nonReentrant {
         require(propertyInfo.status == Status.Created, "Property is not open for bidding");
         require(highestBidder != msg.sender, "Already the highest bidder");
-        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
+//        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
         require(offer > highestBid, "Bid amount must be greater than highest bid");
         require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
 
         highestBid = offer;
         highestBidder = msg.sender;
-        propertyInfo.Status = Status.OfferReceived;
+        propertyInfo.status = Status.OfferReceived;
     }
 
     /**
@@ -74,13 +73,13 @@ contract Property is ReentrancyGuard {
     function bidAgain(uint256 offer) public nonReentrant {
         require(propertyInfo.status == Status.Rejected, "secondBid not allowed when offer is not rejected");
         require(highestBidder != msg.sender, "Already the highest bidder");
-        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
+//        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
         require(offer > highestBid, "Bid amount must be greater than highest bid");
         require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
 
         highestBid = offer;
         highestBidder = msg.sender;
-        propertyInfo.Status = Status.OfferReceived;
+        propertyInfo.status = Status.OfferReceived;
     }
 
     /**
@@ -181,8 +180,8 @@ contract Property is ReentrancyGuard {
         uint256 mFee = contractBalance * mortgageFee / 100;
         uint256 totalFee = fee + mFee;
         // total fee transferred
-        (bool success, ) = _factory.call{value: totalFee}("");
-        require(success, "Transfer fee to factory failed.");
+        (bool factorySuccess, ) = address(factory).call{value: totalFee}("");
+        require(factorySuccess, "Transfer fee to factory failed.");
 
         uint amountAfterFee = contractBalance - totalFee;
 

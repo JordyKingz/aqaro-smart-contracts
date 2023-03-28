@@ -10,15 +10,15 @@ struct CreateProperty {
 
 struct PropertyInfo {
     uint id;
-//    string propertyGuid;
     Address addr;
     uint askingPrice;
     address payable seller;
-//    bytes signature; // ?
     uint created;
+    //    string propertyGuid;
+    //    bytes signature; // ?
 //    bytes extraData; // ?
     Status status;
-    SellStatus sellStatus;
+    OfferStatus offerStatus;
 }
 
 struct Address {
@@ -38,7 +38,7 @@ enum Status {
     Processed
 }
 
-struct SellStatus {
+struct OfferStatus {
     bool sellerAccepted;
     bool buyerAccepted;
 }

@@ -2,7 +2,6 @@
 pragma solidity 0.8.17;
 
 import "./PropertyFactory.sol";
-import "./staking/MortgagePool.sol";
 
 contract Aqaro is PropertyFactory {
     /**

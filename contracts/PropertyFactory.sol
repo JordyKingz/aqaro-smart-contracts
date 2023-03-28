@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     address public factoryController;
 
-    address[] public propertyAddresses; // list of all property addresses created
     mapping(address => address[]) public properties; // mapping of owner to list of properties created
     mapping(uint => PropertyInfo) public propertyInfo; // mapping of property id to property info
 
@@ -17,7 +16,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     uint public propertyCount; // total number of properties created
 
     event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId);
-    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint indexed propertyId);
+    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
 
     constructor(address _factoryController) {
         factoryController = _factoryController;
@@ -48,10 +47,14 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
             id: propertyCount,
             addr: _property.addr,
             askingPrice: _property.askingPrice,
-            seller: msg.sender,
+            seller: payable(msg.sender),
             status: Status.Created,
-            created: block.timestamp
-//            propertyGuid: _property.propertyGuid,
+            created: block.timestamp,
+            offerStatus: OfferStatus({
+                sellerAccepted: false,
+                buyerAccepted: false
+            })
+//            propertyGuid:_property.propertyGuid,
 //            signature: _property.signature,
 //            extraData: _property.extraData,
         });
@@ -65,7 +68,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         // add property to properties mapping
         properties[msg.sender].push(address(property));
         // add property to propertyAddresses array
-        propertyAddresses.push(address(property));
+//        propertyAddresses.push(address(property));
         // add property to propertyContracts mapping
         propertyContracts[address(property)] = property;
 
@@ -79,28 +82,31 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      *
      * @notice only the controller can call this function
      *
-     * @param propertyAddress The property propertyAddress to finalize
+     * @param _propertyAddress The property propertyAddress to finalize
      */
-    function propertyIsSold(address propertyAddress) public onlyFactoryController nonReentrant {
+    function propertyIsSold(address _propertyAddress) public onlyFactoryController nonReentrant {
         // check if propertyAddress is in propertyAddresses array
-        require(propertyAddresses[propertyAddress] != address(0), "Property does not exist");
-        require(propertyContracts[propertyAddress].created <= block.timestamp, "Property does not exist");
+        require(_propertyAddress != address(0), "Property does not exist");
 
-        Property property = Property(propertyAddress);
+        Property property = Property(_propertyAddress);
 
-        require(property.status == Status.Sold, "Property is not Sold");
-        require(property.sellStatus.sellerAccepted == true, "Seller has not accepted the offer");
-        require(property.sellStatus.buyerAccepted == true, "Buyer has not accepted the offer");
+        (uint id, Address memory addr, uint askingPrice, address payable seller, uint created, Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+//        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
+        require(status == Status.Sold, "Property is not Sold");
+        require(offerStatus.sellerAccepted == true, "Seller has not accepted the offer");
+        require(offerStatus.buyerAccepted == true, "Buyer has not accepted the offer");
 
         // update property to propertyContracts mapping
-        propertyContracts[address(propertyAddress)] = property;
-        PropertyInfo memory _propertyInfo = property.propertyInfo();
-        propertyInfo[_propertyInfo.id] = _propertyInfo;
+        propertyContracts[address(_propertyAddress)] = property;
+
 
         bool success = property.transferPropertyOwnerShip();
         require(success, "Property ownership transfer failed");
 
-        emit PropertySold(address(property), property.highestBidder, _propertyInfo.seller, property.highestBid, _propertyInfo.id);
+        address highestBidder = property.highestBidder();
+        uint highestBid = property.highestBid();
+
+        emit PropertySold(address(property), highestBidder, seller, highestBid, id);
     }
 
     /**

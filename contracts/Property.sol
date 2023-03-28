@@ -91,7 +91,7 @@ contract Property is ReentrancyGuard {
         require(propertyInfo.status == Status.OfferReceived, "Property is not open for bidding");
         require(highestBid > 0, "No bids have been made");
         propertyInfo.status = Status.Accepted;
-        propertyInfo.sellStatus.sellerAccepted = true;
+        propertyInfo.offerStatus.sellerAccepted = true;
     }
 
     /**
@@ -103,7 +103,7 @@ contract Property is ReentrancyGuard {
         require(propertyInfo.status == Status.Accepted, "Bid not accepted");
         require(msg.sender == highestBidder, "Only highest bidder can accept the sell");
         require(msg.value == highestBid, "Incorrect amount sent"); // now funds are transferred to the contract
-        propertyInfo.sellStatus.buyerAccepted = true;
+        propertyInfo.offerStatus.buyerAccepted = true;
     }
 
     // todo implement
@@ -112,7 +112,7 @@ contract Property is ReentrancyGuard {
         require(msg.sender == highestBidder, "Only highest bidder can accept the sell");
         require(msg.value == highestBid, "Incorrect amount sent"); // now funds are transferred to the contract
         // todo implement way that msg.value is given from mortgage pool
-        propertyInfo.sellStatus.buyerAccepted = true;
+        propertyInfo.offerStatus.buyerAccepted = true;
     }
 
     /**
@@ -123,8 +123,8 @@ contract Property is ReentrancyGuard {
      */
     function finalizeSellForProperty() public onlyPropertyOwner nonReentrant {
         require(propertyInfo.status == Status.Accepted, "Bid not accepted");
-        require(propertyInfo.sellStatus.sellerAccepted, "Seller has not accepted the sell");
-        require(propertyInfo.sellStatus.buyerAccepted, "Buyer has not accepted the sell");
+        require(propertyInfo.offerStatus.sellerAccepted, "Seller has not accepted the sell");
+        require(propertyInfo.offerStatus.buyerAccepted, "Buyer has not accepted the sell");
 
         propertyInfo.status = Status.Sold;
     }

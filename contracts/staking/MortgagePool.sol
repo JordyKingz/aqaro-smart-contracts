@@ -11,7 +11,7 @@ contract MortgagePool is ReentrancyGuard {
     mapping(address => uint256) public mortgageLiquidity;
     mapping(address => uint256) public mortgageLiquidityPercentage;
 
-    constructor(address _factoryController) MortgageProvider(address(this), _factoryController) {
+    constructor(address _factoryController) {
         factoryController = _factoryController;
     }
 

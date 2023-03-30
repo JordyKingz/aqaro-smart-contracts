@@ -17,7 +17,7 @@ contract Aqaro is PropertyFactory {
      *
      * @return The name of this contract.
      */
-    function _name() internal pure override returns (string memory) {
+    function _name() internal pure returns (string memory) {
         // Return the name of the contract.
         assembly {
             mstore(0x20, 0x20)
@@ -26,7 +26,7 @@ contract Aqaro is PropertyFactory {
         }
     }
 
-    function _nameString() internal pure override returns (string memory) {
+    function _nameString() internal pure returns (string memory) {
         // Return the name of the contract.
         return "Aqaro";
     }

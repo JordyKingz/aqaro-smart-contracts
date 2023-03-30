@@ -3,8 +3,9 @@ pragma solidity 0.8.17;
 struct CreateProperty {
     Address addr;
     uint askingPrice;
-    bytes signature;
-    bytes extraData;
+//    string propertyGuid; // id from backend?
+//    bytes signature; // ?
+//    bytes extraData; // ?
 }
 
 struct PropertyInfo {
@@ -12,11 +13,12 @@ struct PropertyInfo {
     Address addr;
     uint askingPrice;
     address payable seller;
-    bytes signature;
     uint created;
-    bytes extraData;
+    //    string propertyGuid;
+    //    bytes signature; // ?
+//    bytes extraData; // ?
     Status status;
-    SellStatus sellStatus;
+    OfferStatus offerStatus;
 }
 
 struct Address {
@@ -36,7 +38,7 @@ enum Status {
     Processed
 }
 
-struct SellStatus {
+struct OfferStatus {
     bool sellerAccepted;
     bool buyerAccepted;
 }

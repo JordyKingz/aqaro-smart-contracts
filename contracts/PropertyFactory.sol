@@ -11,7 +11,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     mapping(address => address[]) public properties; // mapping of owner to list of properties created
     mapping(uint => PropertyInfo) public propertyInfo; // mapping of property id to property info
 
-    mapping(address => Property) public propertyContracts; // mapping of property address to property contract
+    address[] public propertyContracts; // mapping of property address to property contract
 
     uint public propertyCount; // total number of properties created
 
@@ -33,6 +33,14 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         _;
     }
 
+    function getPropertiesForCaller() public view returns(address[] memory) {
+        return properties[msg.sender];
+    }
+
+    function getPropertyContracts() public view returns(address[] memory) {
+        return propertyContracts;
+    }
+
     /**
      * @dev function to create a new property contract
      *      owner of the property/contract is the msg.sender
@@ -40,7 +48,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      * @param _property The property to create
      * @return The address of the created contract.
      */
-    function createProperty(CreateProperty memory _property) public nonReentrant returns (address) {
+    function createProperty(CreateProperty memory _property) public nonReentrant returns(address) {
         ++propertyCount;
 
         PropertyInfo memory _propertyInfo = PropertyInfo({
@@ -67,10 +75,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         // add property to properties mapping
         properties[msg.sender].push(address(property));
-        // add property to propertyAddresses array
-//        propertyAddresses.push(address(property));
-        // add property to propertyContracts mapping
-        propertyContracts[address(property)] = property;
+        propertyContracts.push(address(property));
 
         emit PropertyCreated(address(property), msg.sender, propertyCount);
         return address(property);
@@ -97,7 +102,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         require(offerStatus.buyerAccepted == true, "Buyer has not accepted the offer");
 
         // update property to propertyContracts mapping
-        propertyContracts[address(_propertyAddress)] = property;
+//        propertyContracts[address(_propertyAddress)] = property;
 
 
         bool success = property.transferPropertyOwnerShip();

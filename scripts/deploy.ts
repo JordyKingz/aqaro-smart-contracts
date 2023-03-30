@@ -9,7 +9,12 @@ async function main() {
 
   await contract.deployed();
 
-  console.log(`${contract.address}`);
+  console.log(`aqaro: ${contract.address}`);
+
+  const mortgageFactory = await ethers.getContractFactory("MortgagePool");
+  const mortgage = await mortgageFactory.deploy(deployer.address);
+  await mortgage.deployed();
+  console.log(`mortgage: ${mortgage.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

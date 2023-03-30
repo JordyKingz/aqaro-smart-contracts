@@ -3,13 +3,15 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../providers/MortgageProvider.sol";
+import "../interfaces/IMortgagePool.sol";
 
-contract MortgagePool is ReentrancyGuard {
+contract MortgagePool is MortgagePoolInterface, ReentrancyGuard {
     address public factoryController;
 
     uint256 public totalBalance;
     mapping(address => uint256) public mortgageLiquidity;
-    mapping(address => uint256) public mortgageLiquidityPercentage;
+
+    address[] public mortgageProviders;
 
     constructor(address _factoryController) {
         factoryController = _factoryController;
@@ -17,11 +19,6 @@ contract MortgagePool is ReentrancyGuard {
 
     modifier onlyFactoryController() {
         require(msg.sender == factoryController, "Only controller can call this function");
-        _;
-    }
-
-    modifier onlyMortgageProvider() {
-        require(msg.sender == address(this), "Only mortgage provider can call this function");
         _;
     }
 
@@ -33,16 +30,23 @@ contract MortgagePool is ReentrancyGuard {
         provideMortgageLiquidity();
     }
 
-    function contractBalance() public view returns (uint256) {
+    function contractBalance() external view returns (uint256) {
         return address(this).balance;
     }
 
-    function provideMortgageLiquidity() public nonReentrant payable {
+    function getMortgageProviders() external view returns (address[] memory) {
+        return mortgageProviders;
+    }
+
+    function getMortgageLiquidityAmount(address _mortgageProvider) external view returns (uint256) {
+        return mortgageLiquidity[_mortgageProvider];
+    }
+
+    function provideMortgageLiquidity() public payable nonReentrant {
         require(msg.value > 0, "Must send ether to provide liquidity");
 
         totalBalance += msg.value;
         mortgageLiquidity[msg.sender] += msg.value;
-        uint256 liquidityPercentage = (mortgageLiquidity[msg.sender] / totalBalance) * 100; // used to payout interest
-        mortgageLiquidityPercentage[msg.sender] = liquidityPercentage;
+        mortgageProviders.push(msg.sender);
     }
 }

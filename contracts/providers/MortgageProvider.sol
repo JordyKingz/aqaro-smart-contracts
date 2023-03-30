@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../Property.sol";
 
 // contract that transfers from mortgage pool to specific property owner
+// currently not used, can be removed? Other implementation needed
 contract MortgageProvider is ReentrancyGuard {
     address public mortgagePool;
     address public factoryController;

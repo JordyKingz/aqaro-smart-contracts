@@ -28,6 +28,7 @@ contract AqaroPresale is ReentrancyGuard {
     }
 
     function buyAqaroToken(uint256 _amount) external payable nonReentrant {
+        require(block.timestamp < presaleEndDate, "PresaleToken: Presale has ended.");
         require(_amount > 0, "PresaleToken: Must send ether to buy Aqaro token.");
         require(aqaroToken.balanceOf(address(this)) >= _amount, "PresaleToken: Not enough Aqaro token in the contract.");
         require(msg.value == _amount * tokenPrice, "PresaleToken: Must send the correct amount of ether.");
@@ -38,22 +39,35 @@ contract AqaroPresale is ReentrancyGuard {
     }
 
     // When softcap is not reached when presale ends, users can send back aqaro token and get their ether back.
-    function withdrawEther(uint256 _amount) external nonReentrant {
+    function withdrawEther() external nonReentrant {
         require(block.timestamp >= presaleEndDate, "PresaleToken: Presale has not ended yet.");
         require(address(this).balance < softcap, "PresaleToken: Softcap is reached");
-        require(_amount == balances[msg.sender], "Amount must match the amount of Aqaro token you have.");
-        require(aqaroToken.allowance(msg.sender, address(this)) >= _amount, "PresaleToken: You must approve the contract to transfer your Aqaro tokens.");
-        require(aqaroToken.balanceOf(address(this)) >= _amount, "PresaleToken: Not enough tokens in the contract.");
+        require(aqaroToken.allowance(msg.sender, address(this)) >= balances[msg.sender], "PresaleToken: You must approve the contract to transfer your Aqaro tokens.");
+        require(aqaroToken.balanceOf(address(this)) >= balances[msg.sender], "PresaleToken: Not enough tokens in the contract.");
         require(address(this).balance >= ethBalances[msg.sender], "PresaleToken: Not enough ether in the contract.");
 
-        aqaroToken.transferFrom(msg.sender, address(this), _amount);
-        payable(msg.sender).transfer(ethBalances[msg.sender]);
+        aqaroToken.transferFrom(msg.sender, address(this), balances[msg.sender]);
+//        payable(msg.sender).transfer(ethBalances[msg.sender]);
+
+        (bool success, ) = payable(msg.sender).call{value: ethBalances[msg.sender]}("");
+        require(success, "Transfer failed.");
     }
 
     // transfer ETH balance to factory controller
     function transferEtherToController() external nonReentrant onlyFactoryController {
         require(block.timestamp >= presaleEndDate, "PresaleToken: Presale has not ended yet.");
         require(address(this).balance >= softcap, "PresaleToken: Softcap is not reached");
-        payable(factoryController).transfer(address(this).balance);
+//        payable(factoryController).transfer(address(this).balance);
+        (bool success, ) = payable(factoryController).call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
+    }
+
+    // transfer Aqaro token balance to factory controller
+    // can only be called after presale ends
+    // tokens can be added to liquidity, burned, airdrop or other purpose
+    // discuss if function is needed, we can let tokens in contract?
+    function withdrawTokensToController() external nonReentrant onlyFactoryController {
+        require(block.timestamp >= presaleEndDate, "PresaleToken: Presale has not ended yet.");
+        aqaroToken.transfer(factoryController, aqaroToken.balanceOf(address(this)));
     }
 }

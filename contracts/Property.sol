@@ -64,6 +64,8 @@ contract Property is ReentrancyGuard {
 
     /**
      * @dev function to bid on the property
+     * create array of different bids
+     * todo seller can accept any bid and doesnt have to be higher than previous bid
      */
     function bid(uint256 offer) public nonReentrant {
         if (block.timestamp < biddingOpenTime) {

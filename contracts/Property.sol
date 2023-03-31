@@ -9,6 +9,9 @@ contract Property is ReentrancyGuard {
     PropertyFactoryInterface public factory;
     PropertyInfo public propertyInfo;
 
+    error BiddingNotOpen(uint256 bidOpenTime);
+    error NotEnoughBalance(uint256 requested, uint256 available);
+
     // kosten koper currently paid by seller
     uint public constant platformFee = 1; // scaling scale?
     uint public constant mortgageFee = 1; // scaling scale?
@@ -18,6 +21,11 @@ contract Property is ReentrancyGuard {
     address public highestBidder;
     uint256 public created;
 
+    // after creating the property there is a time window of 7 days before bidding is set to open
+    // this gives people who needs mortgages time to request a mortgage for specific properties
+    // and enter the bidding process
+    uint256 public biddingOpenTime;
+
     event PropertyOwnerShipTransferred(address indexed seller, address indexed buyer);
 
     constructor(address _factory, address _propertyOwner, PropertyInfo memory property) {
@@ -25,6 +33,8 @@ contract Property is ReentrancyGuard {
         propertyInfo = property;
         propertyOwner = _propertyOwner;
         created = block.timestamp;
+
+        biddingOpenTime = block.timestamp + 7 days;
     }
 
     modifier onlyFactory() {
@@ -56,6 +66,9 @@ contract Property is ReentrancyGuard {
      * @dev function to bid on the property
      */
     function bid(uint256 offer) public nonReentrant {
+        if (block.timestamp < biddingOpenTime) {
+            revert BiddingNotOpen(biddingOpenTime);
+        }
         require(propertyInfo.status == Status.Created, "Property is not open for bidding");
         require(highestBidder != msg.sender, "Already the highest bidder");
 //        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?

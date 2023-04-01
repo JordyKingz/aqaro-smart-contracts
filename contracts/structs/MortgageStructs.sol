@@ -7,3 +7,8 @@ enum MortgageStatus {
     Active,
     Completed
 }
+
+struct MortgageRequester {
+    string name;
+    uint income;
+}

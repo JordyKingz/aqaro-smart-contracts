@@ -95,7 +95,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         Property property = Property(_propertyAddress);
 
-        (uint id, Address memory addr, uint askingPrice, address payable seller, uint created, Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+        (uint id, , , address payable seller, , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
 //        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
         require(status == Status.Sold, "Property is not Sold");
         require(offerStatus.sellerAccepted == true, "Seller has not accepted the offer");

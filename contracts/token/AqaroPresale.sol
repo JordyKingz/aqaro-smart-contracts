@@ -31,7 +31,7 @@ contract AqaroPresale is ReentrancyGuard {
         require(block.timestamp < presaleEndDate, "PresaleToken: Presale has ended.");
         require(_amount > 0, "PresaleToken: Must send ether to buy Aqaro token.");
         require(aqaroToken.balanceOf(address(this)) >= _amount, "PresaleToken: Not enough Aqaro token in the contract.");
-        require(msg.value == _amount * tokenPrice, "PresaleToken: Must send the correct amount of ether.");
+        require(msg.value == (_amount * tokenPrice) / 1 ether, "PresaleToken: Must send the correct amount of ether.");
         balances[msg.sender] += _amount;
         ethBalances[msg.sender] += msg.value;
 

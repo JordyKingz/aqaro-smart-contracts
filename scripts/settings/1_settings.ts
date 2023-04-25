@@ -78,18 +78,17 @@ async function main() {
       country: "nl",
       zip: "9727"
     },
-    askingPrice: 100
+    askingPrice: 240
   }
 
   // check emit PropertyCreated event
-  aqaro.on("PropertyCreated", (propertyAddress: any, owner: any, propertyCount: any) => {
+  aqaro.on("PropertyCreated", (propertyAddress: any, owner: any, propertyCount: any, askingPrice: any) => {
     console.log(`PropertyCreated: ${propertyAddress}`);
     console.log(`owner: ${owner}`);
     console.log(`propertyCount: ${propertyCount.toString()}`);
+    console.log(`askingPrice: ${propertyCount.toString()}`);
   });
-  const result = await aqaro.connect(charlie).createProperty(createProp);
-  console.log({result});
-
+  await aqaro.connect(charlie).createProperty(createProp);
 
 }
 
@@ -100,6 +99,8 @@ async function addMortgageLiquidity(user: any, amount: number) {
 
   console.log(`added ${amount} ETH to mortgage pool by ${user.address}`);
 }
+
+
 
 async function buyPresaleTokens(user: any, amount: number) {
   const tokenPrice = 0.0003;

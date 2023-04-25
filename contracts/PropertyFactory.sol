@@ -15,7 +15,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
     uint public propertyCount; // total number of properties created
 
-    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId);
+    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId, uint askingPrice);
     event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
 
     constructor(address _factoryController) {
@@ -77,7 +77,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         properties[msg.sender].push(address(property));
         propertyContracts.push(address(property));
 
-        emit PropertyCreated(address(property), msg.sender, propertyCount);
+        emit PropertyCreated(address(property), msg.sender, propertyCount, _propertyInfo.askingPrice);
         return address(property);
     }
 

@@ -86,7 +86,7 @@ async function main() {
     console.log(`PropertyCreated: ${propertyAddress}`);
     console.log(`owner: ${owner}`);
     console.log(`propertyCount: ${propertyCount.toString()}`);
-    console.log(`askingPrice: ${propertyCount.toString()}`);
+    console.log(`askingPrice: ${askingPrice.toString()}`);
   });
   await aqaro.connect(charlie).createProperty(createProp);
 

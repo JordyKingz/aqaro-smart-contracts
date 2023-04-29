@@ -2,7 +2,9 @@ pragma solidity 0.8.17;
 
 enum MortgageStatus {
     Requested,
-    Accepted,
+    DAOAccepted,
+    BuyerAccepted,
+    SellerAccepted,
     Rejected,
     Active,
     Completed
@@ -11,4 +13,11 @@ enum MortgageStatus {
 struct MortgageRequester {
     string name;
     uint income;
+    bool KYCVerified;
+}
+
+struct MortgagePayment {
+    uint amount;
+    uint duration;
+    int8 interestRate;
 }

@@ -55,16 +55,10 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
             id: propertyCount,
             addr: _property.addr,
             askingPrice: _property.askingPrice,
+            price: _property.price,
             seller: payable(msg.sender),
             status: Status.Created,
-            created: block.timestamp,
-            offerStatus: OfferStatus({
-                sellerAccepted: false,
-                buyerAccepted: false
-            })
-//            propertyGuid:_property.propertyGuid,
-//            signature: _property.signature,
-//            extraData: _property.extraData,
+            created: block.timestamp
         });
 
         // add property to propertyInfo mapping

@@ -78,7 +78,8 @@ async function main() {
       country: "nl",
       zip: "9727"
     },
-    askingPrice: 240
+    askingPrice: 137,
+    price: 256000000000 // $256.000
   }
 
   // check emit PropertyCreated event
@@ -90,6 +91,7 @@ async function main() {
   });
   await aqaro.connect(charlie).createProperty(createProp);
 
+  return "done";
 }
 
 async function addMortgageLiquidity(user: any, amount: number) {

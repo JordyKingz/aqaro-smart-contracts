@@ -13,8 +13,7 @@ contract Property is ReentrancyGuard {
     error NotEnoughBalance(uint256 requested, uint256 available);
 
     // kosten koper currently paid by seller
-    uint public constant platformFee = 1; // scaling scale?
-    uint public constant mortgageFee = 1; // scaling scale?
+    uint public constant platformFee = 2; // scaling scale?
 
     address public propertyOwner;
     uint256 public highestBid;
@@ -190,15 +189,11 @@ contract Property is ReentrancyGuard {
         uint256 fee = contractBalance * platformFee / 100;
 //        (bool success, ) = _factory.call{value: fee}("");
 //        require(success, "Transfer fee to factory failed.");
-
-        // todo transfer mortgageFee to mortgage contract
-        uint256 mFee = contractBalance * mortgageFee / 100;
-        uint256 totalFee = fee + mFee;
         // total fee transferred
-        (bool factorySuccess, ) = address(factory).call{value: totalFee}("");
+        (bool factorySuccess, ) = address(factory).call{value: fee}("");
         require(factorySuccess, "Transfer fee to factory failed.");
 
-        uint amountAfterFee = contractBalance - totalFee;
+        uint amountAfterFee = contractBalance - fee;
 
         address payable seller = propertyInfo.seller;
 

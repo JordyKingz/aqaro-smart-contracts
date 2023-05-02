@@ -13,9 +13,6 @@ struct PropertyInfo {
     int price;
     address payable seller;
     uint created;
-    //    string propertyGuid;
-    //    bytes signature; // ?
-//    bytes extraData; // ?
     Status status;
     OfferStatus offerStatus;
 }
@@ -34,7 +31,11 @@ enum Status {
     BuyerAccepted,
     SellerAccepted,
     Cancelled,
-    Sold
+    Sold,
+    OfferReceived, // when no mortgage is needed
+    Rejected, // when no mortgage is needed
+    Accepted, // when no mortgage is needed
+    Processed // when no mortgage is needed
 }
 
 struct OfferStatus {

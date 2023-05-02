@@ -58,7 +58,11 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
             price: _property.price,
             seller: payable(msg.sender),
             status: Status.Created,
-            created: block.timestamp
+            created: block.timestamp,
+            offerStatus: OfferStatus({
+                sellerAccepted: false,
+                buyerAccepted: false
+            })
         });
 
         // add property to propertyInfo mapping
@@ -89,7 +93,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         Property property = Property(_propertyAddress);
 
-        (uint id, , , address payable seller, , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+        (uint id, , , , address payable seller, , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
 //        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
         require(status == Status.Sold, "Property is not Sold");
         require(offerStatus.sellerAccepted == true, "Seller has not accepted the offer");

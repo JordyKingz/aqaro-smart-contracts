@@ -44,27 +44,27 @@ async function main() {
     dave,
     eve] = await ethers.getSigners();
 
-  // add mortgage liquidity
-  const mortgagePoolFactory = await ethers.getContractFactory("MortgagePool");
-  mortgagePool = await mortgagePoolFactory.attach(`${mortgagePoolAddress}`);
-  await addMortgageLiquidity(alice, 250);
-  await addMortgageLiquidity(bob, 200);
-  await addMortgageLiquidity(eve, 100);
-
-  // check eth balance of mortgagePool
-  const mortgagePoolBalance = await ethers.provider.getBalance(mortgagePool.address);
-  console.log(`mortgage pool balance: ${ethers.utils.formatEther(mortgagePoolBalance)}ETH`);
-
-  // purchase presale tokens
-  const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
-  aqaroToken = await aqaroTokenFactory.attach(`${aqaroTokenAddress}`);
-  const aqaroPresaleFactory = await ethers.getContractFactory("AqaroPresale");
-  aqaroPresale = await aqaroPresaleFactory.attach(`${aqaroPresaleAddress}`);
-  await buyPresaleTokens(alice, 10000);
-  await buyPresaleTokens(bob, 20000);
-  await buyPresaleTokens(dave, 5000);
-  console.log(`aqaro presale balance: ${ethers.utils.formatEther(await aqaroToken.balanceOf(aqaroPresale.address))}AQARO`);
-  console.log(`ETH balance of aqaro presale: ${ethers.utils.formatEther(await ethers.provider.getBalance(aqaroPresale.address))}ETH`);
+  // // add mortgage liquidity
+  // const mortgagePoolFactory = await ethers.getContractFactory("MortgagePool");
+  // mortgagePool = await mortgagePoolFactory.attach(`${mortgagePoolAddress}`);
+  // await addMortgageLiquidity(alice, 250);
+  // await addMortgageLiquidity(bob, 200);
+  // await addMortgageLiquidity(eve, 100);
+  //
+  // // check eth balance of mortgagePool
+  // const mortgagePoolBalance = await ethers.provider.getBalance(mortgagePool.address);
+  // console.log(`mortgage pool balance: ${ethers.utils.formatEther(mortgagePoolBalance)}ETH`);
+  //
+  // // purchase presale tokens
+  // const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
+  // aqaroToken = await aqaroTokenFactory.attach(`${aqaroTokenAddress}`);
+  // const aqaroPresaleFactory = await ethers.getContractFactory("AqaroPresale");
+  // aqaroPresale = await aqaroPresaleFactory.attach(`${aqaroPresaleAddress}`);
+  // await buyPresaleTokens(alice, 10000);
+  // await buyPresaleTokens(bob, 20000);
+  // await buyPresaleTokens(dave, 5000);
+  // console.log(`aqaro presale balance: ${ethers.utils.formatEther(await aqaroToken.balanceOf(aqaroPresale.address))}AQARO`);
+  // console.log(`ETH balance of aqaro presale: ${ethers.utils.formatEther(await ethers.provider.getBalance(aqaroPresale.address))}ETH`);
 
   // list property
   const aqaroFactory = await ethers.getContractFactory("Aqaro");
@@ -72,14 +72,26 @@ async function main() {
 
   const createProp = {
     addr: {
-      street: "Muntinglaan 44",
+      street: "Poelestraat 4",
       city: "Groningen",
       state: "Groningen",
       country: "nl",
-      zip: "9727"
+      zip: "9710"
+    },
+    seller: {
+      wallet: deployer.address,
+      name: "John Doe",
+      email: "info@aqaro.app",
+      status: 0
     },
     askingPrice: 137,
-    price: 256000000000 // $256.000
+    price: 256000, // $256.000
+    description: "Welcome to your new home!\n" +
+      "                                This stunning 3-bedroom apartment offers over 100m² of luxurious living space in the heart of downtown.\n" +
+      "                                The bright and airy open plan living area is perfect for relaxing or entertaining guests, while the fully equipped kitchen features high-quality finishes and fittings.\n" +
+      "                                Step outside onto your private balcony and enjoy the peaceful view of the beautifully landscaped garden.\n" +
+      "                                With three spacious bedrooms, this apartment is perfect for families or professionals seeking a comfortable and convenient living experience.\n" +
+      "                                Don't miss your chance to own this exceptional property - schedule a viewing today and make it yours!"
   }
 
   // check emit PropertyCreated event

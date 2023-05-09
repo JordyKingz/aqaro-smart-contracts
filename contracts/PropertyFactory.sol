@@ -48,7 +48,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      * @param _property The property to create
      * @return The address of the created contract.
      */
-    function createProperty(CreateProperty memory _property) public nonReentrant returns(address) {
+    function createProperty(CreateProperty calldata _property) public nonReentrant returns(address) {
         ++propertyCount;
 
         PropertyInfo memory _propertyInfo = PropertyInfo({
@@ -56,7 +56,13 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
             addr: _property.addr,
             askingPrice: _property.askingPrice,
             price: _property.price,
-            seller: payable(msg.sender),
+            description : _property.description,
+            seller: Seller({
+                wallet: payable(msg.sender),
+                name: _property.seller.name,
+                email: _property.seller.email,
+                status: _property.seller.status
+            }),
             status: Status.Created,
             created: block.timestamp,
             offerStatus: OfferStatus({
@@ -93,7 +99,8 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         Property property = Property(_propertyAddress);
 
-        (uint id, , , , address payable seller, , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+        (uint id, , , , Seller memory seller, , , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+
 //        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
         require(status == Status.Sold, "Property is not Sold");
         require(offerStatus.sellerAccepted == true, "Seller has not accepted the offer");
@@ -109,7 +116,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         address highestBidder = property.highestBidder();
         uint highestBid = property.highestBid();
 
-        emit PropertySold(address(property), highestBidder, seller, highestBid, id);
+        emit PropertySold(address(property), highestBidder, seller.wallet, highestBid, id);
     }
 
     /**

@@ -74,7 +74,7 @@ contract Property is ReentrancyGuard {
         require(highestBidder != msg.sender, "Already the highest bidder");
 //        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
         require(offer > highestBid, "Bid amount must be greater than highest bid");
-        require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
+        require(propertyInfo.seller.wallet != msg.sender, "Seller cannot bid on their own property");
 
         highestBid = offer;
         highestBidder = msg.sender;
@@ -89,7 +89,7 @@ contract Property is ReentrancyGuard {
         require(highestBidder != msg.sender, "Already the highest bidder");
 //        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
         require(offer > highestBid, "Bid amount must be greater than highest bid");
-        require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
+        require(propertyInfo.seller.wallet != msg.sender, "Seller cannot bid on their own property");
 
         highestBid = offer;
         highestBidder = msg.sender;
@@ -172,7 +172,7 @@ contract Property is ReentrancyGuard {
         success = _transferPropertyFunds(contractBalance);
         require(success, "Transfer property funds failed.");
 
-        emit PropertyOwnerShipTransferred(propertyInfo.seller, propertyOwner);
+        emit PropertyOwnerShipTransferred(propertyInfo.seller.wallet, propertyOwner);
         return success;
     }
 
@@ -195,7 +195,7 @@ contract Property is ReentrancyGuard {
 
         uint amountAfterFee = contractBalance - fee;
 
-        address payable seller = propertyInfo.seller;
+        address payable seller = propertyInfo.seller.wallet;
 
         (bool success, ) = seller.call{value: amountAfterFee}("");
         require(success, "Transfer failed.");

@@ -2,6 +2,8 @@ pragma solidity 0.8.17;
 
 struct CreateProperty {
     Address addr;
+    Seller seller;
+    string description;
     uint askingPrice;
     int price;
 }
@@ -11,7 +13,8 @@ struct PropertyInfo {
     Address addr;
     uint askingPrice;
     int price;
-    address payable seller;
+    Seller seller;
+    string description;
     uint created;
     Status status;
     OfferStatus offerStatus;
@@ -25,6 +28,13 @@ struct Address {
     string zip;
 }
 
+struct Seller {
+    address payable wallet;
+    string name;
+    string email;
+    KYCStatus status;
+}
+
 enum Status {
     Created,
     Pending,
@@ -36,6 +46,12 @@ enum Status {
     Rejected, // when no mortgage is needed
     Accepted, // when no mortgage is needed
     Processed // when no mortgage is needed
+}
+
+enum KYCStatus {
+    NONE,
+    PENDING,
+    VERIFIED
 }
 
 struct OfferStatus {

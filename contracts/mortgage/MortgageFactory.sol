@@ -6,15 +6,19 @@ import "./Mortgage.sol";
 import "../Property.sol";
 import "../structs/MortgageStructs.sol";
 
-
 contract MortgageFactory is ReentrancyGuard {
     error InvalidAddress();
+    error MortgageDurationInPast();
     error MortgagePaymentAmountZero();
     error CannotRequestPropertyWhenPropertyOwner();
     error MortgageAlreadyRequested(address propertyContract);
     error PropertyDoesNotExists();
 
+    event MortgageRequested(address indexed mortgageContract, address indexed propertyContract, address indexed owner);
+
     address public factoryController;
+
+    int public interestRate = 2.5; // 2.5% interest rate
 
     // owner => property
     mapping(address => address) public propertyMortgageRequests;
@@ -22,8 +26,6 @@ contract MortgageFactory is ReentrancyGuard {
     mapping(address => mapping(address => address)) public ownerPropertyMortgage;
 
     address[] public mortgageContracts;
-
-    event MortgageRequested(address indexed mortgageContract, address indexed propertyContract, address indexed owner);
 
     constructor(address _factoryController) {
         factoryController = _factoryController;
@@ -36,13 +38,16 @@ contract MortgageFactory is ReentrancyGuard {
     // for every mortgage request this function is called to create new mortgage contract
     function requestMortgage(
         address propertyContract,
-        MortgageRequester memory _requester,
-        MortgagePayment memory _mortgagePayment)
+        MortgageRequester calldata _requester,
+        MortgagePayment calldata _mortgagePayment)
     public nonReentrant {
         if (propertyContract == address(0)) {
             revert InvalidAddress();
         }
-        if (_mortgagePayment.amount == 0) {
+        if (_requester.endDate < block.timestamp) {
+            revert MortgageDurationInPast();
+        }
+        if (_mortgagePayment.amountETH == 0 || _mortgagePayment.amountUSD == 0) {
             revert MortgagePaymentAmountZero();
         }
 

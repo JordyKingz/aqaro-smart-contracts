@@ -33,10 +33,20 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev function to get all properties for a caller
+     *
+     * @return Array of property addresses
+     */
     function getPropertiesForCaller() public view returns(address[] memory) {
         return properties[msg.sender];
     }
 
+    /**
+     * @dev function to get all property contracts
+     *
+     * @return Array of property contract addresses
+     */
     function getPropertyContracts() public view returns(address[] memory) {
         return propertyContracts;
     }

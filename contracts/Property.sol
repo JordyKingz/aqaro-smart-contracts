@@ -96,7 +96,7 @@ contract Property is ReentrancyGuard {
         propertyInfo.status = Status.OfferReceived;
     }
 
-    /** deprected
+    /** deprecated
      * @dev function to accept the sell as a seller
      *
      * @notice only the property owner can call this function

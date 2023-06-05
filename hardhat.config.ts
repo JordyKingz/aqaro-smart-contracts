@@ -20,6 +20,7 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://localhost:8545",
     },
+
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

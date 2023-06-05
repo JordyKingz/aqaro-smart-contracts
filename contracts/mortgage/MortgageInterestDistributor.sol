@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IMortgagePool.sol";
 
 contract MortgageInterestDistributor is ReentrancyGuard {
+    error OnlySystem();
+
     MortgagePoolInterface public mortgagePool;
 
     address private _system;
@@ -17,7 +19,8 @@ contract MortgageInterestDistributor is ReentrancyGuard {
     }
 
     modifier onlySystem() {
-        require(msg.sender == _system, "Only system can call this function");
+        if (msg.sender != system)
+            revert OnlySystem();
         _;
     }
 
@@ -31,9 +34,10 @@ contract MortgageInterestDistributor is ReentrancyGuard {
         uint totalBalance = mortgagePool.contractBalance();
         // subtract estimated gas cost from total balance
         uint calcBalance = totalBalance - estimatedGas;
-        for (uint i = 0; i < mortgageProviders.length; ++i) {
+        uint mortgageProvidersLength = mortgageProviders.length;
+        for (uint i = 0; i < mortgageProvidersLength; ++i) {
             uint providerBalance = mortgagePool.getMortgageLiquidityAmount(mortgageProviders[i]);
-            mortgageLiquidityPercentage[mortgageProviders[i]] = (providerBalance / calcBalance) * 100;
+            mortgageLiquidityPercentage[mortgageProviders[i]] = (providerBalance * 100) / calcBalance;
         }
     }
 }

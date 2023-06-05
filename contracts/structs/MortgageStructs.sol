@@ -7,7 +7,8 @@ enum MortgageStatus {
     SellerAccepted,
     Rejected,
     Active,
-    Completed
+    Completed,
+    OnHold // when payment is due
 }
 
 struct MortgageRequester {
@@ -17,7 +18,9 @@ struct MortgageRequester {
 }
 
 struct MortgagePayment {
-    uint amount;
-    uint duration;
+    uint amountETH;
+    int amountUSD;
+    uint totalPayments;
+    uint endDate;
     int8 interestRate;
 }

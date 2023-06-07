@@ -18,7 +18,6 @@ contract Aqaro is PropertyFactory {
      * @return The name of this contract.
      */
     function _name() internal pure returns (string memory) {
-        // Return the name of the contract.
         assembly {
             mstore(0x20, 0x20)
             mstore(0x47, 0x417161726f)
@@ -26,8 +25,13 @@ contract Aqaro is PropertyFactory {
         }
     }
 
+    /**
+     * @dev Internal pure function to retrieve and return the name of this
+     *      contract.
+     *
+     * @return The name of this contract.
+     */
     function _nameString() internal pure returns (string memory) {
-        // Return the name of the contract.
         return "Aqaro";
     }
 }

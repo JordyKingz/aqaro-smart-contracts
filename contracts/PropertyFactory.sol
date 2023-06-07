@@ -15,7 +15,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
     uint public propertyCount; // total number of properties created
 
-    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId);
+    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId, uint askingPrice);
     event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
 
     constructor(address _factoryController) {
@@ -33,10 +33,20 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev function to get all properties for a caller
+     *
+     * @return Array of property addresses
+     */
     function getPropertiesForCaller() public view returns(address[] memory) {
         return properties[msg.sender];
     }
 
+    /**
+     * @dev function to get all property contracts
+     *
+     * @return Array of property contract addresses
+     */
     function getPropertyContracts() public view returns(address[] memory) {
         return propertyContracts;
     }
@@ -48,23 +58,27 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      * @param _property The property to create
      * @return The address of the created contract.
      */
-    function createProperty(CreateProperty memory _property) public nonReentrant returns(address) {
+    function createProperty(CreateProperty calldata _property) public nonReentrant returns(address) {
         ++propertyCount;
 
         PropertyInfo memory _propertyInfo = PropertyInfo({
             id: propertyCount,
             addr: _property.addr,
             askingPrice: _property.askingPrice,
-            seller: payable(msg.sender),
+            price: _property.price,
+            description : _property.description,
+            seller: Seller({
+                wallet: payable(msg.sender),
+                name: _property.seller.name,
+                email: _property.seller.email,
+                status: _property.seller.status
+            }),
             status: Status.Created,
             created: block.timestamp,
             offerStatus: OfferStatus({
                 sellerAccepted: false,
                 buyerAccepted: false
             })
-//            propertyGuid:_property.propertyGuid,
-//            signature: _property.signature,
-//            extraData: _property.extraData,
         });
 
         // add property to propertyInfo mapping
@@ -77,7 +91,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         properties[msg.sender].push(address(property));
         propertyContracts.push(address(property));
 
-        emit PropertyCreated(address(property), msg.sender, propertyCount);
+        emit PropertyCreated(address(property), msg.sender, propertyCount, _propertyInfo.askingPrice);
         return address(property);
     }
 
@@ -95,7 +109,8 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         Property property = Property(_propertyAddress);
 
-        (uint id, Address memory addr, uint askingPrice, address payable seller, uint created, Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+        (uint id, , , , Seller memory seller, , , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+
 //        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
         require(status == Status.Sold, "Property is not Sold");
         require(offerStatus.sellerAccepted == true, "Seller has not accepted the offer");
@@ -111,7 +126,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         address highestBidder = property.highestBidder();
         uint highestBid = property.highestBid();
 
-        emit PropertySold(address(property), highestBidder, seller, highestBid, id);
+        emit PropertySold(address(property), highestBidder, seller.wallet, highestBid, id);
     }
 
     /**

@@ -1,5 +1,8 @@
 import { HardhatUserConfig } from "hardhat/config";
+import * as dotenv from "dotenv";
 import "@nomicfoundation/hardhat-toolbox";
+
+dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -17,6 +20,7 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://localhost:8545",
     },
+
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

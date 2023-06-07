@@ -9,14 +9,21 @@ contract Property is ReentrancyGuard {
     PropertyFactoryInterface public factory;
     PropertyInfo public propertyInfo;
 
+    error BiddingNotOpen(uint256 bidOpenTime);
+    error NotEnoughBalance(uint256 requested, uint256 available);
+
     // kosten koper currently paid by seller
-    uint public constant platformFee = 1; // scaling scale?
-    uint public constant mortgageFee = 1; // scaling scale?
+    uint public constant platformFee = 2; // scaling scale?
 
     address public propertyOwner;
     uint256 public highestBid;
     address public highestBidder;
     uint256 public created;
+
+    // after creating the property there is a time window of 7 days before bidding is set to open
+    // this gives people who needs mortgages time to request a mortgage for specific properties
+    // and enter the bidding process
+    uint256 public biddingOpenTime;
 
     event PropertyOwnerShipTransferred(address indexed seller, address indexed buyer);
 
@@ -25,6 +32,8 @@ contract Property is ReentrancyGuard {
         propertyInfo = property;
         propertyOwner = _propertyOwner;
         created = block.timestamp;
+
+        biddingOpenTime = block.timestamp + 7 days;
     }
 
     modifier onlyFactory() {
@@ -54,13 +63,18 @@ contract Property is ReentrancyGuard {
 
     /**
      * @dev function to bid on the property
+     * create array of different bids
+     * todo seller can accept any bid and doesnt have to be higher than previous bid
      */
     function bid(uint256 offer) public nonReentrant {
+        if (block.timestamp < biddingOpenTime) {
+            revert BiddingNotOpen(biddingOpenTime);
+        }
         require(propertyInfo.status == Status.Created, "Property is not open for bidding");
         require(highestBidder != msg.sender, "Already the highest bidder");
 //        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price"); // todo needed?
         require(offer > highestBid, "Bid amount must be greater than highest bid");
-        require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
+        require(propertyInfo.seller.wallet != msg.sender, "Seller cannot bid on their own property");
 
         highestBid = offer;
         highestBidder = msg.sender;
@@ -75,14 +89,14 @@ contract Property is ReentrancyGuard {
         require(highestBidder != msg.sender, "Already the highest bidder");
 //        require(offer > propertyInfo.askingPrice * 0.9, "Bid amount must be greater than 10% below asking price");
         require(offer > highestBid, "Bid amount must be greater than highest bid");
-        require(propertyInfo.seller != msg.sender, "Seller cannot bid on their own property");
+        require(propertyInfo.seller.wallet != msg.sender, "Seller cannot bid on their own property");
 
         highestBid = offer;
         highestBidder = msg.sender;
         propertyInfo.status = Status.OfferReceived;
     }
 
-    /**
+    /** deprecated
      * @dev function to accept the sell as a seller
      *
      * @notice only the property owner can call this function
@@ -158,7 +172,7 @@ contract Property is ReentrancyGuard {
         success = _transferPropertyFunds(contractBalance);
         require(success, "Transfer property funds failed.");
 
-        emit PropertyOwnerShipTransferred(propertyInfo.seller, propertyOwner);
+        emit PropertyOwnerShipTransferred(propertyInfo.seller.wallet, propertyOwner);
         return success;
     }
 
@@ -175,17 +189,13 @@ contract Property is ReentrancyGuard {
         uint256 fee = contractBalance * platformFee / 100;
 //        (bool success, ) = _factory.call{value: fee}("");
 //        require(success, "Transfer fee to factory failed.");
-
-        // todo transfer mortgageFee to mortgage contract
-        uint256 mFee = contractBalance * mortgageFee / 100;
-        uint256 totalFee = fee + mFee;
         // total fee transferred
-        (bool factorySuccess, ) = address(factory).call{value: totalFee}("");
+        (bool factorySuccess, ) = address(factory).call{value: fee}("");
         require(factorySuccess, "Transfer fee to factory failed.");
 
-        uint amountAfterFee = contractBalance - totalFee;
+        uint amountAfterFee = contractBalance - fee;
 
-        address payable seller = propertyInfo.seller;
+        address payable seller = propertyInfo.seller.wallet;
 
         (bool success, ) = seller.call{value: amountAfterFee}("");
         require(success, "Transfer failed.");

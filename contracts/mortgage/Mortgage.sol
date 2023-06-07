@@ -31,20 +31,20 @@ contract Mortgage is ReentrancyGuard {
 
     uint private _paidOffAmountUsd;
     uint private _paidOffAmountEth;
-    uint private _restAmountUsd;
+    int private _restAmountUsd;
     uint private _restAmountEth;
     uint private _lastPaymentDate;
 
     constructor(
         address _propertyContract,
         address _buyer,
-        MortgageRequester calldata requester,
-        MortgagePayment calldata mortgagePayment
+        MortgageRequester memory requester,
+        MortgagePayment memory mortgagePayment
     ) {
-        if (requester.endDate < block.timestamp) {
+        if (mortgagePayment.endDate < block.timestamp) {
             revert MortgageDurationInPast();
         }
-        endDate = requester.endDate;
+        endDate = mortgagePayment.endDate;
 
         status = MortgageStatus.Requested;
         propertyContract = _propertyContract;
@@ -56,6 +56,6 @@ contract Mortgage is ReentrancyGuard {
         _restAmountEth = mortgagePayment.amountETH;
 
         buyer = _buyer;
-        totalPayments = requester.totalPayments;
+        totalPayments = mortgagePayment.totalPayments;
     }
 }

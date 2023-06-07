@@ -19,7 +19,7 @@ contract MortgageInterestDistributor is ReentrancyGuard {
     }
 
     modifier onlySystem() {
-        if (msg.sender != system)
+        if (msg.sender != _system)
             revert OnlySystem();
         _;
     }

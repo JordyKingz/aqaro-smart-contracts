@@ -13,7 +13,8 @@ enum MortgageStatus {
 
 struct MortgageRequester {
     string name;
-    uint income;
+    int incomeMonthly;
+    int incomeYearly;
     bool KYCVerified;
 }
 
@@ -22,5 +23,5 @@ struct MortgagePayment {
     int amountUSD;
     uint totalPayments;
     uint endDate;
-    int8 interestRate;
+    int16 interestRate;
 }

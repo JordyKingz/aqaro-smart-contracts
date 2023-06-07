@@ -18,7 +18,7 @@ contract MortgageFactory is ReentrancyGuard {
 
     address public factoryController;
 
-    int public interestRate = 2.5; // 2.5% interest rate
+    uint public interestRate = 2500; // 2.5% interest rate
 
     // owner => property
     mapping(address => address) public propertyMortgageRequests;
@@ -44,7 +44,7 @@ contract MortgageFactory is ReentrancyGuard {
         if (propertyContract == address(0)) {
             revert InvalidAddress();
         }
-        if (_requester.endDate < block.timestamp) {
+        if (_mortgagePayment.endDate < block.timestamp) {
             revert MortgageDurationInPast();
         }
         if (_mortgagePayment.amountETH == 0 || _mortgagePayment.amountUSD == 0) {
@@ -61,7 +61,7 @@ contract MortgageFactory is ReentrancyGuard {
         }
 
         (, , , , , , uint created, ,) = property.propertyInfo();
-        if (created < block.timestamp) {
+        if (created == 0 || created > block.timestamp) {
             revert PropertyDoesNotExists();
         }
 

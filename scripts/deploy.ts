@@ -21,7 +21,6 @@ async function main() {
   await mortgageFactoryContract.deployed();
   console.log(`mortgage factory: ${mortgageFactoryContract.address}`);
 
-
   // token has to be deployed on main net when aqaro is in alpha
   // presale will be sold on main net for 0.0003ETH per token, selling 10M tokens
   // to raise 3000ETH
@@ -30,21 +29,31 @@ async function main() {
   await aqaroToken.deployed();
   console.log(`aqaroToken: ${aqaroToken.address}`);
 
-  const aqaroPresaletFactory = await ethers.getContractFactory("AqaroPresale");
-  const aqaroPresale = await aqaroPresaletFactory.deploy(deployer.address, aqaroToken.address);
-  await aqaroPresale.deployed();
-  console.log(`aqaroPresale: ${aqaroPresale.address}`);
+  // aqaro early sale contract
+  const aqaroEarlySaleFactory = await ethers.getContractFactory("AqaroEarlySale");
+  const aqaroEarlySale = await aqaroEarlySaleFactory.deploy(deployer.address, aqaroToken.address);
+  await aqaroEarlySale.deployed();
+  console.log(`aqaroEarlySale: ${aqaroEarlySale.address}`);
 
-  await transferTokensToPresaleContract(aqaroToken.address, aqaroPresale.address);
+  await transferTokensToPresaleContract(aqaroToken.address, 3_000_000, aqaroEarlySale.address);
+
+
+  // aqaro presale contract
+  // const aqaroPresaletFactory = await ethers.getContractFactory("AqaroPresale");
+  // const aqaroPresale = await aqaroPresaletFactory.deploy(deployer.address, aqaroToken.address);
+  // await aqaroPresale.deployed();
+  // console.log(`aqaroPresale: ${aqaroPresale.address}`);
+
+  // await transferTokensToPresaleContract(aqaroToken.address, 10_000_000, aqaroPresale.address);
 }
 
-async function transferTokensToPresaleContract(tokenAddress: string, presaleAddress: string) {
+async function transferTokensToPresaleContract(tokenAddress: string, tokenAmount: number, smartContractAddress: string) {
   // transfer 10M tokens to presale contract
   const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
   const aqaroToken = await aqaroTokenFactory.attach(tokenAddress);
-  await aqaroToken.transfer(presaleAddress, ethers.utils.parseUnits("10000000", 18));
+  await aqaroToken.transfer(smartContractAddress, ethers.utils.parseUnits(`${tokenAmount}`, 18));
 
-  console.log("transferred 10M tokens to presale contract");
+  console.log(`transferred ${tokenAmount} tokens to contract`);
 
 }
 

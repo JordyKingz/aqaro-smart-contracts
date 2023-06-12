@@ -37,7 +37,7 @@ contract AqaroEarlySale is ReentrancyGuard {
         require(block.timestamp < saleEndDate, "AqaroEarlySale: Presale has ended.");
         require(_amount > 0, "AqaroEarlySale: Must send ether to buy Aqaro token.");
         require(aqaroToken.balanceOf(address(this)) >= _amount, "AqaroEarlySale: Not enough Aqaro token in the contract.");
-        require(msg.value == (_amount * tokenPrice), "AqaroEarlySale: Must send the correct amount of ether.");
+        require(msg.value == tokenPrice * _amount / 1 ether, "AqaroEarlySale: Must send the correct amount of ether.");
         balances[msg.sender] += _amount;
         ethBalances[msg.sender] += msg.value;
 
@@ -50,7 +50,7 @@ contract AqaroEarlySale is ReentrancyGuard {
      * @dev function to transfer ETH balance to factory controller
      */
     function transferEthToController() external nonReentrant onlyFactoryController {
-        require(block.timestamp >= presaleEndDate, "AqaroEarlySale: Sale has not ended yet.");
+        require(block.timestamp >= saleEndDate, "AqaroEarlySale: Sale has not ended yet.");
         (bool success, ) = payable(factoryController).call{value: address(this).balance}("");
         require(success, "Transfer failed.");
     }
@@ -60,7 +60,7 @@ contract AqaroEarlySale is ReentrancyGuard {
     // remaining tokens can be added to liquidity, burned, airdrop or other purposes
     // discuss if function is needed, we can let tokens in contract?
     function withdrawTokensToController() external nonReentrant onlyFactoryController {
-        require(block.timestamp >= presaleEndDate, "AqaroEarlySale: Presale has not ended yet.");
+        require(block.timestamp >= saleEndDate, "AqaroEarlySale: Sale has not ended yet.");
         aqaroToken.transfer(factoryController, aqaroToken.balanceOf(address(this)));
     }
 }

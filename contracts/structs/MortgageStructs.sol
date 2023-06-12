@@ -19,8 +19,8 @@ struct MortgageRequester {
 }
 
 struct MortgagePayment {
-    uint amountETH;
     int amountUSD;
+    uint amountETH;
     uint totalPayments;
     uint endDate;
     int16 interestRate;

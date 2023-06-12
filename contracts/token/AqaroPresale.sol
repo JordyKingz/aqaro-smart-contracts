@@ -74,7 +74,6 @@ contract AqaroPresale is ReentrancyGuard {
     function transferEtherToController() external nonReentrant onlyFactoryController {
         require(block.timestamp >= presaleEndDate, "PresaleToken: Presale has not ended yet.");
         require(address(this).balance >= softCap, "PresaleToken: Softcap is not reached");
-//        payable(factoryController).transfer(address(this).balance);
         (bool success, ) = payable(factoryController).call{value: address(this).balance}("");
         require(success, "Transfer failed.");
     }

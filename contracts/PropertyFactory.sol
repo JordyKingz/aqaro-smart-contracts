@@ -58,11 +58,12 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      * @param _property The property to create
      * @return The address of the created contract.
      */
-    function createProperty(CreateProperty calldata _property) public nonReentrant returns(address) {
+    function createProperty(CreateProperty calldata _property) public nonReentrant returns(address, uint) {
         ++propertyCount;
 
         PropertyInfo memory _propertyInfo = PropertyInfo({
             id: propertyCount,
+            service_id: _property.service_id,
             addr: _property.addr,
             askingPrice: _property.askingPrice,
             price: _property.price,
@@ -92,7 +93,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         propertyContracts.push(address(property));
 
         emit PropertyCreated(address(property), msg.sender, propertyCount, _propertyInfo.askingPrice);
-        return address(property);
+        return (address(property), propertyCount);
     }
 
     /**

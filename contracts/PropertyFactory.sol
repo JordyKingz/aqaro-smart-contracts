@@ -6,6 +6,10 @@ import "./structs/PropertyStructs.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
+
+    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId, uint askingPrice);
+    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
+
     address public factoryController;
 
     mapping(address => address[]) public properties; // mapping of owner to list of properties created
@@ -14,9 +18,6 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     address[] public propertyContracts; // mapping of property address to property contract
 
     uint public propertyCount; // total number of properties created
-
-    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId, uint askingPrice);
-    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
 
     constructor(address _factoryController) {
         factoryController = _factoryController;
@@ -58,11 +59,12 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
      * @param _property The property to create
      * @return The address of the created contract.
      */
-    function createProperty(CreateProperty calldata _property) public nonReentrant returns(address) {
+    function createProperty(CreateProperty calldata _property) public nonReentrant returns(address, uint) {
         ++propertyCount;
 
         PropertyInfo memory _propertyInfo = PropertyInfo({
             id: propertyCount,
+            service_id: _property.service_id,
             addr: _property.addr,
             askingPrice: _property.askingPrice,
             price: _property.price,
@@ -92,7 +94,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
         propertyContracts.push(address(property));
 
         emit PropertyCreated(address(property), msg.sender, propertyCount, _propertyInfo.askingPrice);
-        return address(property);
+        return (address(property), propertyCount);
     }
 
     /**
@@ -109,7 +111,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         Property property = Property(_propertyAddress);
 
-        (uint id, , , , Seller memory seller, , , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+        (uint id, , , , , Seller memory seller, , , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
 
 //        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
         require(status == Status.Sold, "Property is not Sold");

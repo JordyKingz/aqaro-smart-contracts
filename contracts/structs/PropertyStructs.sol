@@ -5,11 +5,13 @@ struct CreateProperty {
     Seller seller;
     string description;
     uint askingPrice;
+    string service_id;
     int price;
 }
 
 struct PropertyInfo {
     uint id;
+    string service_id;
     Address addr;
     uint askingPrice;
     int price;

@@ -83,6 +83,7 @@ async function main() {
   aqaro = await aqaroFactory.attach(`${aqaroAddress}`);
 
   const createProp = {
+    service_id: "1234-123-1234-1234",
     addr: {
       street: "Poelestraat 4",
       city: "Groningen",
@@ -97,7 +98,7 @@ async function main() {
       status: 0
     },
     askingPrice: 137,
-    price: 256000, // $256.000
+    price: 256000*1e6, // $256.000
     description: "Welcome to your new home!\n" +
       "                                This stunning 3-bedroom apartment offers over 100m² of luxurious living space in the heart of downtown.\n" +
       "                                The bright and airy open plan living area is perfect for relaxing or entertaining guests, while the fully equipped kitchen features high-quality finishes and fittings.\n" +
@@ -117,7 +118,7 @@ async function main() {
 
     createMortgageRequest(propertyAddress, dave);
   });
-  await aqaro.connect(charlie).createProperty(createProp);
+  // await aqaro.connect(charlie).createProperty(createProp);
 }
 
 async function createMortgageRequest(propAddress: string, user: any) {

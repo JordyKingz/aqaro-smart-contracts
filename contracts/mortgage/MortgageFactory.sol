@@ -60,7 +60,7 @@ contract MortgageFactory is ReentrancyGuard {
             revert MortgageAlreadyRequested(propertyContract);
         }
 
-        (, , , , , , uint created, ,) = property.propertyInfo();
+        (, , , , , , , uint created, ,) = property.propertyInfo();
         if (created == 0 || created > block.timestamp) {
             revert PropertyDoesNotExists();
         }

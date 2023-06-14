@@ -6,6 +6,10 @@ import "./structs/PropertyStructs.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
+
+    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId, uint askingPrice);
+    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
+
     address public factoryController;
 
     mapping(address => address[]) public properties; // mapping of owner to list of properties created
@@ -14,9 +18,6 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
     address[] public propertyContracts; // mapping of property address to property contract
 
     uint public propertyCount; // total number of properties created
-
-    event PropertyCreated(address indexed propertyAddress, address indexed owner, uint indexed propertyId, uint askingPrice);
-    event PropertySold(address indexed propertyAddress, address indexed buyer, address indexed seller, uint price, uint propertyId);
 
     constructor(address _factoryController) {
         factoryController = _factoryController;
@@ -110,7 +111,7 @@ contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {
 
         Property property = Property(_propertyAddress);
 
-        (uint id, , , , Seller memory seller, , , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
+        (uint id, , , , , Seller memory seller, , , Status status, OfferStatus memory offerStatus) = property.propertyInfo();
 
 //        require(block.timestamp >= property.propertyInfo.created, "Property does not exist");
         require(status == Status.Sold, "Property is not Sold");

@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../interfaces/IAqaroToken.sol";
 import "../../interfaces/IStakeVault.sol";
 
-contract Distributor is ReentrancyGuard {
+contract StakeVaultDistributor is ReentrancyGuard {
     event Distributed(uint256 amount);
 
     address public factoryController;

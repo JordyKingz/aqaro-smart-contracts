@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import {transferTokensToPresaleContract} from "./helpers/helpers";
 
 async function main() {
   // get signers
@@ -35,8 +36,7 @@ async function main() {
   await aqaroEarlySale.deployed();
   console.log(`aqaroEarlySale: ${aqaroEarlySale.address}`);
 
-  await transferTokensToPresaleContract(aqaroToken.address, 3_000_000, aqaroEarlySale.address);
-
+  await transferTokensToPresaleContract(deployer,aqaroToken.address, 3_000_000, aqaroEarlySale.address);
 
   // aqaro presale contract
   // const aqaroPresaletFactory = await ethers.getContractFactory("AqaroPresale");
@@ -47,15 +47,6 @@ async function main() {
   // await transferTokensToPresaleContract(aqaroToken.address, 10_000_000, aqaroPresale.address);
 }
 
-async function transferTokensToPresaleContract(tokenAddress: string, tokenAmount: number, smartContractAddress: string) {
-  // transfer 10M tokens to presale contract
-  const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
-  const aqaroToken = await aqaroTokenFactory.attach(tokenAddress);
-  await aqaroToken.transfer(smartContractAddress, ethers.utils.parseUnits(`${tokenAmount}`, 18));
-
-  console.log(`transferred ${tokenAmount} tokens to contract`);
-
-}
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

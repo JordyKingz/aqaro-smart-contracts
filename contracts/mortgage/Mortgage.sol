@@ -48,7 +48,7 @@ contract Mortgage is ReentrancyGuard {
 
         status = MortgageStatus.Requested;
         propertyContract = _propertyContract;
-        Property property = Property(_propertyContract);
+        property = Property(_propertyContract);
 
         _requester = requester;
         _mortgagePayment = mortgagePayment;

@@ -20,7 +20,11 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://localhost:8545",
     },
-
+    sepolia: {
+      url: process.env.SEPOLIA_URL,
+      // @ts-ignore
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

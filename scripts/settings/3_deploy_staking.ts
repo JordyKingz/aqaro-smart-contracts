@@ -23,7 +23,7 @@ async function main() {
   );
 
   await stakeVault.deployed();
-  console.log(`'stakeVault address:': ${stakeVault.address}`);
+  console.log(`stakeVault address: ${stakeVault.address}`);
 
   const distributorFactory = await ethers.getContractFactory("StakeVaultDistributor");
   const stakeVaultDistributor = await distributorFactory.deploy(
@@ -32,7 +32,7 @@ async function main() {
     stakeVault.address
   );
 
-  console.log(`'stakeVaultDistributor address:': ${stakeVaultDistributor.address}`);
+  console.log(`stakeVaultDistributor address: ${stakeVaultDistributor.address}`);
 
   await stakeVault.setFeeDistributor(stakeVaultDistributor.address);
 

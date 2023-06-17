@@ -8,7 +8,7 @@ import "../../interfaces/IAqaroToken.sol";
 import "../../interfaces/IStakeVault.sol";
 
 // note: set fee distributor!
-contract AqaroStakeVault is StakeVaultInterface, ReentrancyGuard {
+contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     event RewardAdded(uint256 indexed reward);
     event Staked(address indexed user, uint256 indexed amount);
     event Withdrawn(address indexed user, uint256 indexed amount);
@@ -189,7 +189,7 @@ contract AqaroStakeVault is StakeVaultInterface, ReentrancyGuard {
     */
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyFactoryController {
         require(tokenAddress != address(token), "Cannot withdraw AQR token");
-        IERC20(tokenAddress).transfer(owner(), tokenAmount);
+        IERC20(tokenAddress).transfer(factoryController, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 
@@ -222,5 +222,9 @@ contract AqaroStakeVault is StakeVaultInterface, ReentrancyGuard {
             token.transfer(_msgSender(), reward);
             emit RewardPaid(_msgSender(), reward);
         }
+    }
+
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
     }
 }

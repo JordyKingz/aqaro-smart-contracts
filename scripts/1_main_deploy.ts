@@ -38,14 +38,27 @@ async function main() {
 
   await transferTokensToPresaleContract(deployer, aqaroToken.address, 3_000_000, aqaroEarlySale.address);
 
+  const vaultFactory = await ethers.getContractFactory("StakeVault");
+  const stakeVault = await vaultFactory.deploy(
+    aqaroToken.address,
+    deployer.address,
+  );
 
-  // aqaro presale contract
-  // const aqaroPresaletFactory = await ethers.getContractFactory("AqaroPresale");
-  // const aqaroPresale = await aqaroPresaletFactory.deploy(deployer.address, aqaroToken.address);
-  // await aqaroPresale.deployed();
-  // console.log(`aqaroPresale: ${aqaroPresale.address}`);
+  await stakeVault.deployed();
+  console.log(`stakeVault address: ${stakeVault.address}`);
 
-  // await transferTokensToPresaleContract(aqaroToken.address, 10_000_000, aqaroPresale.address);
+  const distributorFactory = await ethers.getContractFactory("StakeVaultDistributor");
+  const stakeVaultDistributor = await distributorFactory.deploy(
+    aqaroToken.address,
+    deployer.address,
+    stakeVault.address
+  );
+
+  console.log(`stakeVaultDistributor address: ${stakeVaultDistributor.address}`);
+
+  await stakeVault.setFeeDistributor(stakeVaultDistributor.address);
+
+  await transferTokensToPresaleContract(deployer, aqaroToken.address, 2_000_000, stakeVaultDistributor.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

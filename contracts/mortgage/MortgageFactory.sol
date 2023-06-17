@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./Mortgage.sol";
-import "../Property.sol";
+import "../property/Property.sol";
 import "../structs/MortgageStructs.sol";
 
 contract MortgageFactory is ReentrancyGuard {

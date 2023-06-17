@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "./Property.sol";
-import "./structs/PropertyStructs.sol";
+import "../property/Property.sol";
+import "../structs/PropertyStructs.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract PropertyFactory is PropertyFactoryInterface, ReentrancyGuard {

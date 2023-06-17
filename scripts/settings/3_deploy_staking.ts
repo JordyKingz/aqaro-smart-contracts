@@ -33,6 +33,9 @@ async function main() {
   );
 
   console.log(`'stakeVaultDistributor address:': ${stakeVaultDistributor.address}`);
+
+  await stakeVault.setFeeDistributor(stakeVaultDistributor.address);
+
   await transferTokensToPresaleContract(deployer, aqaroTokenAddress, 2_000_000, stakeVaultDistributor.address);
 }
 

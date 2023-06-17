@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "../structs/MortgageStructs.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "../Property.sol";
+import "../property/Property.sol";
 
 // used for mortgage => property
 // todo set price to pay each month

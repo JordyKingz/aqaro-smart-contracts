@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
 
-import "../interfaces/IAqaroToken.sol";
+import "../../interfaces/IAqaroToken.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract AqaroEarlySale is ReentrancyGuard {

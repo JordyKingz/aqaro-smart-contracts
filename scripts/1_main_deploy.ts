@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import {transferTokensToPresaleContract} from "./helpers/helpers";
 
 async function main() {
   // get signers
@@ -35,26 +36,29 @@ async function main() {
   await aqaroEarlySale.deployed();
   console.log(`aqaroEarlySale: ${aqaroEarlySale.address}`);
 
-  await transferTokensToPresaleContract(aqaroToken.address, 3_000_000, aqaroEarlySale.address);
+  await transferTokensToPresaleContract(deployer, aqaroToken.address, 3_000_000, aqaroEarlySale.address);
 
+  const vaultFactory = await ethers.getContractFactory("StakeVault");
+  const stakeVault = await vaultFactory.deploy(
+    aqaroToken.address,
+    deployer.address,
+  );
 
-  // aqaro presale contract
-  // const aqaroPresaletFactory = await ethers.getContractFactory("AqaroPresale");
-  // const aqaroPresale = await aqaroPresaletFactory.deploy(deployer.address, aqaroToken.address);
-  // await aqaroPresale.deployed();
-  // console.log(`aqaroPresale: ${aqaroPresale.address}`);
+  await stakeVault.deployed();
+  console.log(`stakeVault address: ${stakeVault.address}`);
 
-  // await transferTokensToPresaleContract(aqaroToken.address, 10_000_000, aqaroPresale.address);
-}
+  const distributorFactory = await ethers.getContractFactory("StakeVaultDistributor");
+  const stakeVaultDistributor = await distributorFactory.deploy(
+    aqaroToken.address,
+    deployer.address,
+    stakeVault.address
+  );
 
-async function transferTokensToPresaleContract(tokenAddress: string, tokenAmount: number, smartContractAddress: string) {
-  // transfer 10M tokens to presale contract
-  const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
-  const aqaroToken = await aqaroTokenFactory.attach(tokenAddress);
-  await aqaroToken.transfer(smartContractAddress, ethers.utils.parseUnits(`${tokenAmount}`, 18));
+  console.log(`stakeVaultDistributor address: ${stakeVaultDistributor.address}`);
 
-  console.log(`transferred ${tokenAmount} tokens to contract`);
+  await stakeVault.setFeeDistributor(stakeVaultDistributor.address);
 
+  await transferTokensToPresaleContract(deployer, aqaroToken.address, 2_000_000, stakeVaultDistributor.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

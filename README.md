@@ -9,5 +9,5 @@ npx hardhat help
 npx hardhat test
 REPORT_GAS=true npx hardhat test
 npx hardhat node
-npx hardhat run scripts/1_main_deploy.ts
+npx hardhat run scripts/2_main_deploy.ts
 ```

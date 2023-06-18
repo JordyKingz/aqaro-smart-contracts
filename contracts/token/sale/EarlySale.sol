@@ -5,6 +5,9 @@ import "../../interfaces/IAqaroToken.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract AqaroEarlySale is ReentrancyGuard {
+    event InvestInAqaro(address indexed _investor, uint256 _amount, uint256 _ethAmount);
+    event TransferEthToController(address indexed _controller, uint256 _ethAmount);
+
     AqaroTokenInterface public aqaroToken;
     address public factoryController;
 
@@ -43,6 +46,9 @@ contract AqaroEarlySale is ReentrancyGuard {
 
         (bool success) = aqaroToken.transfer(msg.sender, _amount);
         require(success, "AqaroEarlySale: Transfer failed.");
+
+        emit InvestInAqaro(msg.sender, _amount, msg.value);
+
         return true;
     }
 
@@ -53,6 +59,8 @@ contract AqaroEarlySale is ReentrancyGuard {
         require(block.timestamp >= saleEndDate, "AqaroEarlySale: Sale has not ended yet.");
         (bool success, ) = payable(factoryController).call{value: address(this).balance}("");
         require(success, "Transfer failed.");
+
+        emit TransferEthToController(factoryController, address(this).balance);
     }
 
     // transfer Aqaro token balance to factory controller

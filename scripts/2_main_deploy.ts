@@ -5,26 +5,7 @@ async function main() {
   // get signers
   const [deployer] = await ethers.getSigners();
 
-  const contractFactory = await ethers.getContractFactory("Aqaro");
-  const contract = await contractFactory.deploy(deployer.address);
-
-  await contract.deployed();
-
-  console.log(`aqaro: ${contract.address}`);
-
-  const mortgagePool = await ethers.getContractFactory("MortgagePool");
-  const mortgage = await mortgagePool.deploy(deployer.address);
-  await mortgage.deployed();
-  console.log(`mortgage pool: ${mortgage.address}`);
-
-  const mortgageFactory = await ethers.getContractFactory("MortgageFactory");
-  const mortgageFactoryContract = await mortgageFactory.deploy(deployer.address);
-  await mortgageFactoryContract.deployed();
-  console.log(`mortgage factory: ${mortgageFactoryContract.address}`);
-
   // token has to be deployed on main net when aqaro is in alpha
-  // presale will be sold on main net for 0.0003ETH per token, selling 10M tokens
-  // to raise 3000ETH
   const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
   const aqaroToken = await aqaroTokenFactory.deploy(deployer.address);
   await aqaroToken.deployed();

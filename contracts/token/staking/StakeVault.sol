@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../interfaces/IAqaroToken.sol";
 import "../../interfaces/IStakeVault.sol";
 
-// note: set fee distributor!
 contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     event RewardAdded(uint256 indexed reward);
     event Staked(address indexed user, uint256 indexed amount);
@@ -15,10 +14,21 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     event RewardPaid(address indexed user, uint256 indexed reward);
     event RewardsDurationUpdated(uint256 indexed newDuration);
     event Recovered(address indexed token, uint256 indexed amount);
+    event RewardDistributorUpdated(address indexed newDistributor);
+
+    error OnlyFactoryController();
+    error OnlyDistributor();
+    error StakingPeriodNotEnded();
+    error StakingPeriodHasEnded();
+    error AmountIsZero();
+    error InsufficientBalance();
+    error NoAllowance();
+    error AddressCannotBeZero();
+    error CannotRecoverAQRToken();
 
     address public factoryController;
     AqaroTokenInterface public token;
-    address public feeDistributor;
+    address public rewardDistributor;
 
     uint256 public periodFinish = 0; // end of staking period
     uint256 public rewardRate = 0;
@@ -40,12 +50,16 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     }
 
     modifier onlyFactoryController() {
-        require(msg.sender == factoryController, "Only controller can call this function");
+        if (msg.sender != factoryController) {
+            revert OnlyFactoryController();
+        }
         _;
     }
 
-    modifier onlyFeeDistributor() {
-        require(msg.sender == feeDistributor, "Only fee distributor can call this function");
+    modifier onlyDistributor() {
+        if (msg.sender != rewardDistributor) {
+            revert OnlyDistributor();
+        }
         _;
     }
 
@@ -112,15 +126,25 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     * @param amount the amount to withdraw
     */
     function withdraw(uint256 amount) public nonReentrant updateReward(_msgSender()) {
-        require(block.timestamp >= periodFinish, "Staking period has not ended");
-        require(amount > 0, "Cannot withdraw 0");
-        require(_balances[_msgSender()] >= amount, "Cannot withdraw more than staked");
+        if (block.timestamp < periodFinish) {
+            revert StakingPeriodNotEnded();
+        }
+        if (amount == 0) {
+            revert AmountIsZero();
+        }
+        if (amount > _balances[_msgSender()]) {
+            revert InsufficientBalance();
+        }
+
         _totalSupply -= amount;
         _balances[_msgSender()] -= amount;
-        token.transfer(_msgSender(), amount);
 
         if (rewards[_msgSender()] > 0)
             _getReward();
+
+        (bool success) = token.transfer(_msgSender(), amount);
+        require(success, "Transfer failed");
+
         emit Withdrawn(_msgSender(), amount);
     }
 
@@ -129,12 +153,21 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     * @param amount the amount to withdraw
     */
     function stake(uint256 amount) external nonReentrant updateReward(_msgSender()) {
-        require(amount > 0, "Cannot stake 0");
-        require(block.timestamp < periodFinish, "Staking period has ended");
-        require(token.allowance(_msgSender(), address(this)) >= amount , "Transfer of token has not been approved");
+        if (block.timestamp > periodFinish) {
+            revert StakingPeriodHasEnded();
+        }
+        if (amount == 0) {
+            revert AmountIsZero();
+        }
+        if (amount > token.allowance(_msgSender(), address(this))) {
+            revert NoAllowance();
+        }
         _totalSupply += amount;
         _balances[_msgSender()] += amount;
-        token.transferFrom(_msgSender(), address(this), amount);
+
+        (bool success) = token.transferFrom(_msgSender(), address(this), amount);
+        require(success, "Transfer failed");
+
         emit Staked(_msgSender(), amount);
     }
 
@@ -142,12 +175,7 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     * @dev Get reward for caller
     */
     function getReward() external nonReentrant updateReward(_msgSender()) {
-        uint256 reward = rewards[_msgSender()];
-        if (reward > 0) {
-            rewards[_msgSender()] = 0;
-            token.transfer(_msgSender(), reward);
-            emit RewardPaid(_msgSender(), reward);
-        }
+        _getReward();
     }
 
     /**
@@ -161,7 +189,7 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     * @dev Only owner function to notifyRewardAmount
     * @param reward Amount of reward to be distributed
     */
-    function notifyRewardAmount(uint256 reward) external onlyFeeDistributor updateReward(address(0)) {
+    function notifyRewardAmount(uint256 reward) external onlyDistributor updateReward(address(0)) {
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / rewardsDuration;
         } else {
@@ -183,17 +211,24 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     }
 
     /**
+    * TODO: Deprecate this function?
     * @dev Recover ERC20 tokens sent to this contract, except AQR token
     * @param tokenAddress token address
     * @param tokenAmount the amount of tokens
     */
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyFactoryController {
-        require(tokenAddress != address(token), "Cannot withdraw AQR token");
+        if (tokenAddress == address(0)) {
+            revert AddressCannotBeZero();
+        }
+        if (tokenAddress == address(token)) {
+            revert CannotRecoverAQRToken();
+        }
         IERC20(tokenAddress).transfer(factoryController, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 
     /**
+    * TODO: Deprecate this function?
     * @dev Set the duration of the rewards period
     * @param _rewardsDuration the duration of the rewards period
     */
@@ -206,9 +241,16 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    function setFeeDistributor(address _feeDistributor) external onlyFactoryController {
-        require(_feeDistributor != address(0), "Cannot set fee distributor to zero address");
-        feeDistributor = _feeDistributor;
+    /**
+    * @dev Set the fee distributor
+    * @param _distributor the fee distributor
+    */
+    function setRewardDistributor(address _distributor) external onlyFactoryController {
+        if (_distributor == address(0)) {
+            revert AddressCannotBeZero();
+        }
+        rewardDistributor = _distributor;
+        emit RewardDistributorUpdated(rewardDistributor);
     }
 
     /**
@@ -219,7 +261,8 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
         uint256 reward = rewards[_msgSender()];
         if (reward > 0) {
             rewards[_msgSender()] = 0;
-            token.transfer(_msgSender(), reward);
+            (bool success) = token.transfer(_msgSender(), reward);
+            require(success, "Transfer failed");
             emit RewardPaid(_msgSender(), reward);
         }
     }

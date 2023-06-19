@@ -5,10 +5,12 @@ import "../../interfaces/IAqaroToken.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract AqaroEarlySale is ReentrancyGuard {
-    event InvestInAqaro(address indexed _investor, uint256 _amount, uint256 _ethAmount);
-    event TransferEthToController(address indexed _controller, uint256 _ethAmount);
+    event Invested(address indexed _investor, uint256 _amount, uint256 _ethAmount);
+    event EthTransferredToController(address indexed _controller, uint256 _ethAmount);
 
+    error OnlyFactoryController();
     error SaleHasEnded();
+    error SaleNotEnded();
     error AmountIsZero();
     error NotEnoughTokensInContract();
     error NotEnoughEthSent();
@@ -30,7 +32,9 @@ contract AqaroEarlySale is ReentrancyGuard {
     }
 
     modifier onlyFactoryController() {
-        require(msg.sender == factoryController, "AqaroEarlySale: Only factory controller can call this function.");
+        if (msg.sender != factoryController) {
+            revert OnlyFactoryController();
+        }
         _;
     }
 
@@ -39,9 +43,9 @@ contract AqaroEarlySale is ReentrancyGuard {
      *
      * @param _amount The amount of Aqaro token to buy in wei
      *
-     * @return true if successful
+     * @return success if successful
      */
-    function investInAqaro(uint256 _amount) external payable nonReentrant returns (bool) {
+    function investInAqaro(uint256 _amount) external payable nonReentrant returns (bool success) {
         if (block.timestamp > saleEndDate) {
             revert SaleHasEnded();
         }
@@ -58,23 +62,25 @@ contract AqaroEarlySale is ReentrancyGuard {
         balances[msg.sender] += _amount;
         ethBalances[msg.sender] += msg.value;
 
-        (bool success) = aqaroToken.transfer(msg.sender, _amount);
+        (success) = aqaroToken.transfer(msg.sender, _amount);
         require(success, "AqaroEarlySale: Transfer failed.");
 
-        emit InvestInAqaro(msg.sender, _amount, msg.value);
-
-        return true;
+        emit Invested(msg.sender, _amount, msg.value);
+        return success;
     }
 
     /**
      * @dev function to transfer ETH balance to factory controller
      */
     function transferEthToController() external nonReentrant onlyFactoryController {
-        require(block.timestamp >= saleEndDate, "AqaroEarlySale: Sale has not ended yet.");
+        if (block.timestamp < saleEndDate) {
+            revert SaleNotEnded();
+        }
+//        require(block.timestamp >= saleEndDate, "AqaroEarlySale: Sale has not ended yet.");
         (bool success, ) = payable(factoryController).call{value: address(this).balance}("");
         require(success, "Transfer failed.");
 
-        emit TransferEthToController(factoryController, address(this).balance);
+        emit EthTransferredToController(factoryController, address(this).balance);
     }
 
     // transfer Aqaro token balance to factory controller
@@ -82,7 +88,9 @@ contract AqaroEarlySale is ReentrancyGuard {
     // remaining tokens can be added to liquidity, burned, airdrop or other purposes
     // discuss if function is needed, we can let tokens in contract?
     function withdrawTokensToController() external nonReentrant onlyFactoryController {
-        require(block.timestamp >= saleEndDate, "AqaroEarlySale: Sale has not ended yet.");
+        if (block.timestamp < saleEndDate) {
+            revert SaleNotEnded();
+        }
         aqaroToken.transfer(factoryController, aqaroToken.balanceOf(address(this)));
     }
 }

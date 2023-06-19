@@ -121,13 +121,13 @@ contract Property is ReentrancyGuard {
     }
 
     // todo implement
-    function acceptAsBuyerWithMortgage(uint256 mortgageAmount) public payable onlyHighestBidder nonReentrant {
-        require(propertyInfo.status == Status.Accepted, "Bid not accepted");
-        require(msg.sender == highestBidder, "Only highest bidder can accept the sell");
-        require(msg.value == highestBid, "Incorrect amount sent"); // now funds are transferred to the contract
-        // todo implement way that msg.value is given from mortgage pool
-        propertyInfo.offerStatus.buyerAccepted = true;
-    }
+//    function acceptAsBuyerWithMortgage(uint256 mortgageAmount) public payable onlyHighestBidder nonReentrant {
+//        require(propertyInfo.status == Status.Accepted, "Bid not accepted");
+//        require(msg.sender == highestBidder, "Only highest bidder can accept the sell");
+//        require(msg.value == highestBid, "Incorrect amount sent"); // now funds are transferred to the contract
+//        // todo implement way that msg.value is given from mortgage pool
+//        propertyInfo.offerStatus.buyerAccepted = true;
+//    }
 
     /**
      * @dev function to finalize the sell. Seller must accept the sell and buyer must accept the sell

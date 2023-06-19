@@ -8,6 +8,11 @@ contract AqaroEarlySale is ReentrancyGuard {
     event InvestInAqaro(address indexed _investor, uint256 _amount, uint256 _ethAmount);
     event TransferEthToController(address indexed _controller, uint256 _ethAmount);
 
+    error SaleHasEnded();
+    error AmountIsZero();
+    error NotEnoughTokensInContract();
+    error NotEnoughEthSent();
+
     AqaroTokenInterface public aqaroToken;
     address public factoryController;
 
@@ -37,10 +42,19 @@ contract AqaroEarlySale is ReentrancyGuard {
      * @return true if successful
      */
     function investInAqaro(uint256 _amount) external payable nonReentrant returns (bool) {
-        require(block.timestamp < saleEndDate, "AqaroEarlySale: Presale has ended.");
-        require(_amount > 0, "AqaroEarlySale: Must send ether to buy Aqaro token.");
-        require(aqaroToken.balanceOf(address(this)) >= _amount, "AqaroEarlySale: Not enough Aqaro token in the contract.");
-        require(msg.value == tokenPrice * _amount / 1 ether, "AqaroEarlySale: Must send the correct amount of ether.");
+        if (block.timestamp > saleEndDate) {
+            revert SaleHasEnded();
+        }
+        if (_amount == 0) {
+            revert AmountIsZero();
+        }
+        if (aqaroToken.balanceOf(address(this)) < _amount) {
+            revert NotEnoughTokensInContract();
+        }
+        if (msg.value != tokenPrice * _amount / 1 ether) {
+            revert NotEnoughEthSent();
+        }
+
         balances[msg.sender] += _amount;
         ethBalances[msg.sender] += msg.value;
 

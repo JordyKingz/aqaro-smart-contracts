@@ -37,19 +37,20 @@ contract EarlySaleTest is Test {
     }
 
     function test_endDate() public {
-        assertEq(saleEndDate == block.timestamp + 60 days);
+        uint256 endDate = block.timestamp + 60 days;
+        assertEq(saleEndDate, endDate);
     }
 
     function test_tokenPrice() public {
-        assertEq(tokenPrice == 0.000125 ether);
+        assertEq(tokenPrice, 0.000125 ether);
     }
 
     function test_factoryController() public {
-        assertEq(factoryController == address(0xABCD));
+        assertEq(factoryController, address(0xABCD));
     }
 
     function test_contractTokenBalance() public {
-        assertEq(aqaroToken.balanceOf(address(earlySale)) == 3_000_000e18);
+        assertEq(aqaroToken.balanceOf(address(earlySale)), 3_000_000e18);
     }
 
     function test_investInAqaro_shouldFail_SaleEnded(uint _amount) public payable {
@@ -95,9 +96,9 @@ contract EarlySaleTest is Test {
         uint256 tokenBalance = earlySale.balances(alice);
         uint256 aqaroBalance = aqaroToken.balanceOf(alice);
 
-        assertEq(ethBalance == msg.value);
-        assertEq(tokenBalance == _amount);
-        assertEq(aqaroBalance == _amount);
+        assertEq(ethBalance, msg.value);
+        assertEq(tokenBalance, _amount);
+        assertEq(aqaroBalance, _amount);
     }
 
 }

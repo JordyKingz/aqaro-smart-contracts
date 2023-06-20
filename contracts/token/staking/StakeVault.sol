@@ -25,6 +25,7 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     error NoAllowance();
     error AddressCannotBeZero();
     error CannotRecoverAQRToken();
+    error PreviousRewardsPeriodNotEnded();
 
     address public factoryController;
     AqaroTokenInterface public token;
@@ -172,20 +173,6 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
     }
 
     /**
-    * @dev Get reward for caller
-    */
-    function getReward() external nonReentrant updateReward(_msgSender()) {
-        _getReward();
-    }
-
-    /**
-    * @dev Exit the staking pool and claim rewards
-    */
-    function exit() external {
-        withdraw(_balances[_msgSender()]);
-    }
-
-    /**
     * @dev Only owner function to notifyRewardAmount
     * @param reward Amount of reward to be distributed
     */
@@ -206,12 +193,10 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
         require(rewardRate <= balance / rewardsDuration, "Provided reward too high");
 
         lastUpdateTime = block.timestamp;
-//        periodFinish = block.timestamp + rewardsDuration;
         emit RewardAdded(reward);
     }
 
     /**
-    * TODO: Deprecate this function?
     * @dev Recover ERC20 tokens sent to this contract, except AQR token
     * @param tokenAddress token address
     * @param tokenAmount the amount of tokens
@@ -225,20 +210,6 @@ contract StakeVault is StakeVaultInterface, ReentrancyGuard {
         }
         IERC20(tokenAddress).transfer(factoryController, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
-    }
-
-    /**
-    * TODO: Deprecate this function?
-    * @dev Set the duration of the rewards period
-    * @param _rewardsDuration the duration of the rewards period
-    */
-    function setRewardsDuration(uint256 _rewardsDuration) external onlyFactoryController {
-        require(
-            block.timestamp > periodFinish,
-            "Previous rewards period must be complete before changing the duration for the new period"
-        );
-        rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(rewardsDuration);
     }
 
     /**

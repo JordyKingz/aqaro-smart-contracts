@@ -27,9 +27,9 @@ else if (mortgageFactoryAddress === "") {
 else if (aqaroTokenAddress === "") {
   throw new Error("Environment variables AQARO_TOKEN must be present");
 }
-// else if (aqaroPresaleAddress === "") {
-//   throw new Error("Environment variables AQARO_PRESALE must be present");
-// }
+else if (aqaroPresaleAddress === "") {
+  throw new Error("Environment variables AQARO_PRESALE must be present");
+}
 
 let aqaro: any;
 let mortgagePool: any;
@@ -47,29 +47,6 @@ async function main() {
     charlie,
     dave,
     eve] = await ethers.getSigners();
-
-  // add mortgage liquidity
-  const mortgagePoolFactory = await ethers.getContractFactory("MortgagePool");
-  mortgagePool = await mortgagePoolFactory.attach(`${mortgagePoolAddress}`);
-  await addMortgageLiquidity(alice, 250);
-  await addMortgageLiquidity(bob, 200);
-  await addMortgageLiquidity(eve, 100);
-
-  // check eth balance of mortgagePool
-  const mortgagePoolBalance = await ethers.provider.getBalance(mortgagePool.address);
-  console.log(`mortgage pool balance: ${ethers.utils.formatEther(mortgagePoolBalance)}ETH`);
-
-  // purchase presale tokens
-  const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
-  aqaroToken = await aqaroTokenFactory.attach(`${aqaroTokenAddress}`);
-
-  const aqaroEarlySaleFactory = await ethers.getContractFactory("AqaroEarlySale");
-  aqaroEarlySale = await aqaroEarlySaleFactory.attach(`${aqaroEarlySaleAddress}`);
-  await buyEarlySaleTokens(alice, 10000);
-  await buyEarlySaleTokens(bob, 20000);
-  await buyEarlySaleTokens(dave, 5000);
-  console.log(`aqaro early sale balance: ${ethers.utils.formatEther(await aqaroToken.balanceOf(aqaroEarlySale.address))}AQARO`);
-  console.log(`ETH balance of aqaro early sale: ${ethers.utils.formatEther(await ethers.provider.getBalance(aqaroEarlySale.address))}ETH`);
 
   // list property
   const aqaroFactory = await ethers.getContractFactory("Aqaro");
@@ -109,9 +86,9 @@ async function main() {
     console.log(`propertyCount: ${propertyId.toString()}`);
     console.log(`askingPrice: ${askingPrice.toString()}`);
 
-    createMortgageRequest(propertyAddress, dave);
+    // createMortgageRequest(propertyAddress, dave);
   });
-  await aqaro.connect(charlie).createProperty(createProp);
+  // await aqaro.connect(charlie).createProperty(createProp);
 }
 
 async function createMortgageRequest(propAddress: string, user: any) {
@@ -161,6 +138,20 @@ async function buyEarlySaleTokens(user: any, amount: number) {
     .connect(user)
     .investInAqaro(
       ethers.utils.parseUnits(`${amount}`, 18),
+      {value: ethers.utils.parseEther(`${ethPrice}`)}
+    );
+
+  console.log(`bought ${amount} AQARO tokens by ${user.address}`);
+}
+
+async function buyPresaleTokens(user: any, amount: number) {
+  const tokenPrice = 0.0003;
+  const ethPrice = Number(amount * tokenPrice).toFixed(4);
+
+  await aqaroPresale
+    .connect(user)
+    .buyAqaroToken(
+      amount,
       {value: ethers.utils.parseEther(`${ethPrice}`)}
     );
 

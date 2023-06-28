@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import {transferTokensToPresaleContract} from "./helpers/helpers";
+import {transferTokensToPresaleContract} from "../helpers/helpers";
 
 async function main() {
   // get signers

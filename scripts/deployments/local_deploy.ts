@@ -1,9 +1,26 @@
 import { ethers } from "hardhat";
-import {transferTokensToPresaleContract} from "./helpers/helpers";
+import {transferTokensToPresaleContract} from "../helpers/helpers";
 
 async function main() {
   // get signers
   const [deployer] = await ethers.getSigners();
+
+  const contractFactory = await ethers.getContractFactory("Aqaro");
+  const contract = await contractFactory.deploy(deployer.address);
+
+  await contract.deployed();
+
+  console.log(`aqaro: ${contract.address}`);
+
+  const mortgagePool = await ethers.getContractFactory("MortgagePool");
+  const mortgage = await mortgagePool.deploy(deployer.address);
+  await mortgage.deployed();
+  console.log(`mortgage pool: ${mortgage.address}`);
+
+  const mortgageFactory = await ethers.getContractFactory("MortgageFactory");
+  const mortgageFactoryContract = await mortgageFactory.deploy(deployer.address);
+  await mortgageFactoryContract.deployed();
+  console.log(`mortgage factory: ${mortgageFactoryContract.address}`);
 
   // token has to be deployed on main net when aqaro is in alpha
   const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
@@ -37,7 +54,7 @@ async function main() {
 
   console.log(`stakeVaultDistributor address: ${stakeVaultDistributor.address}`);
 
-  await stakeVault.setFeeDistributor(stakeVaultDistributor.address);
+  await stakeVault.setRewardDistributor(stakeVaultDistributor.address);
 
   await transferTokensToPresaleContract(deployer, aqaroToken.address, 2_000_000, stakeVaultDistributor.address);
 }

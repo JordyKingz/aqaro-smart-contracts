@@ -1,24 +1,27 @@
 import { ethers } from "hardhat";
 import {transferTokensToPresaleContract} from "../helpers/helpers";
 
-let mortgageFactoryAddress = process.env.MORTGAGE_FACTORY || "";
-let aqaroTokenAddress = process.env.AQARO_TOKEN || "";
-
-if (mortgageFactoryAddress === "") {
-  throw new Error("Environment variables MORTGAGE_FACTORY must be present");
-}
-if (aqaroTokenAddress === "") {
-  throw new Error("Environment variables AQARO_TOKEN must be present");
-}
-
-
 async function main() {
   // get signers
   const [deployer] = await ethers.getSigners();
 
+  // token has to be deployed on main net when aqaro is in alpha
+  const aqaroTokenFactory = await ethers.getContractFactory("AqaroToken");
+  const aqaroToken = await aqaroTokenFactory.deploy(deployer.address);
+  await aqaroToken.deployed();
+  console.log(`aqaroToken: ${aqaroToken.address}`);
+
+  // aqaro early sale contract
+  const aqaroEarlySaleFactory = await ethers.getContractFactory("AqaroEarlySale");
+  const aqaroEarlySale = await aqaroEarlySaleFactory.deploy(deployer.address, aqaroToken.address);
+  await aqaroEarlySale.deployed();
+  console.log(`aqaroEarlySale: ${aqaroEarlySale.address}`);
+
+  await transferTokensToPresaleContract(deployer, aqaroToken.address, 3_000_000, aqaroEarlySale.address);
+
   const vaultFactory = await ethers.getContractFactory("StakeVault");
   const stakeVault = await vaultFactory.deploy(
-    aqaroTokenAddress,
+    aqaroToken.address,
     deployer.address,
   );
 
@@ -27,7 +30,7 @@ async function main() {
 
   const distributorFactory = await ethers.getContractFactory("StakeVaultDistributor");
   const stakeVaultDistributor = await distributorFactory.deploy(
-    aqaroTokenAddress,
+    aqaroToken.address,
     deployer.address,
     stakeVault.address
   );
@@ -36,7 +39,7 @@ async function main() {
 
   await stakeVault.setRewardDistributor(stakeVaultDistributor.address);
 
-  await transferTokensToPresaleContract(deployer, aqaroTokenAddress, 2_000_000, stakeVaultDistributor.address);
+  await transferTokensToPresaleContract(deployer, aqaroToken.address, 2_000_000, stakeVaultDistributor.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
